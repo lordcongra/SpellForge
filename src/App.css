@@ -1,0 +1,18 @@
+/* Specific styling for the App component */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+}
+
+.status-panel {
+  background-color: #1a1a1a;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+  border: 1px solid #333;
+}
+
+.status-panel p {
+  margin: 0.5rem 0;
+}

@@ -1,0 +1,14 @@
+{
+  "name": "SpellForge",
+  "version": "1.0.0",
+  "manifest_version": 1,
+  "description": "A high-performance particle engine for localized spell effects.",
+  "author": "lordcongra",
+  "action": {
+    "title": "SpellForge",
+    "icon": "/icon.svg",
+    "popover": "http://localhost:5173/SpellForge/",
+    "width": 400,
+    "height": 600
+  }
+}
