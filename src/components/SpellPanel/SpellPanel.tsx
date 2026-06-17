@@ -7,6 +7,7 @@ export function SpellPanel() {
   const availableSpells = useStore((state) => state.availableSpells);
   const activeSpellIdentifier = useStore((state) => state.activeSpellIdentifier);
   const setActiveSpell = useStore((state) => state.setActiveSpell);
+  const addParticleEmitter = useStore((state) => state.addParticleEmitter);
 
 const handleCastSpell = async () => {
     if (!activeSpellIdentifier) return;
@@ -23,11 +24,33 @@ const handleCastSpell = async () => {
       // 2. Fetch the full item data from the scene using those IDs
       const selectedItems = await OBR.scene.items.getItems(selectedItemIds);
 
-      // 3. Grab the first selected item to be our "caster"
+// 3. Grab the first selected item to be our "caster"
       const casterToken = selectedItems[0];
 
-      console.log(`Casting [${activeSpellIdentifier}] from token:`, casterToken.name);
-      console.log("Origin coordinates:", { x: casterToken.position.x, y: casterToken.position.y });
+      // 4. Find the full spell details from our store
+      const spellDefinition = availableSpells.find(
+        (spell) => spell.spellIdentifier === activeSpellIdentifier
+      );
+
+      if (!spellDefinition) return;
+
+      // 5. Generate a unique ID for this specific cast
+      const uniqueCastIdentifier = `${activeSpellIdentifier}-${Date.now()}`;
+
+      // 6. Build the particle configuration
+      const newEmitter = {
+        emitterIdentifier: uniqueCastIdentifier,
+        originCoordinateX: casterToken.position.x,
+        originCoordinateY: casterToken.position.y,
+        particleCount: 50, // A hardcoded base amount for our primitive test
+        emitterLifeSpan: spellDefinition.durationInSeconds,
+        spellColorHex: spellDefinition.spellColorHex,
+      };
+
+      // 7. Add it to our local state
+      addParticleEmitter(newEmitter);
+      
+      console.log("Successfully added emitter to store:", newEmitter);
 
     } catch (error) {
       console.error("Error retrieving token data from OBR:", error);
