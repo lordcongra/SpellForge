@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useStore } from "../../store/useStore";
 import { Button } from "../Button/Button";
 import "./SpellPanel.css";
@@ -8,8 +9,10 @@ export function SpellPanel() {
   const activeSpellIdentifier = useStore((state) => state.activeSpellIdentifier);
   const setActiveSpell = useStore((state) => state.setActiveSpell);
   const addParticleEmitter = useStore((state) => state.addParticleEmitter);
+  const [chosenColor, setChosenColor] = useState("#3498db");
+  const [gridSize, setGridSize] = useState(2);
 
-const handleCastSpell = async () => {
+  const handleCastSpell = async () => {
     if (!activeSpellIdentifier) return;
 
     try {
@@ -24,7 +27,7 @@ const handleCastSpell = async () => {
       // 2. Fetch the full item data from the scene using those IDs
       const selectedItems = await OBR.scene.items.getItems(selectedItemIds);
 
-// 3. Grab the first selected item to be our "caster"
+      // 3. Grab the first selected item to be our "caster"
       const casterToken = selectedItems[0];
 
       // 4. Find the full spell details from our store
@@ -40,18 +43,19 @@ const handleCastSpell = async () => {
       // 6. Build the particle configuration
       const newEmitter = {
         emitterIdentifier: uniqueCastIdentifier,
+        spellType: activeSpellIdentifier,
         originCoordinateX: casterToken.position.x,
         originCoordinateY: casterToken.position.y,
         particleCount: 50, // A hardcoded base amount for our primitive test
         emitterLifeSpan: spellDefinition.durationInSeconds,
-        spellColorHex: spellDefinition.spellColorHex,
+        spellColorHex: chosenColor,
+        spellSize: gridSize,
       };
 
       // 7. Add it to our local state
       addParticleEmitter(newEmitter);
-      
-      console.log("Successfully added emitter to store:", newEmitter);
 
+      console.log("Successfully added emitter to store:", newEmitter);
     } catch (error) {
       console.error("Error retrieving token data from OBR:", error);
     }
@@ -59,7 +63,7 @@ const handleCastSpell = async () => {
   return (
     <div className="spell-panel">
       <h2 className="spell-panel__header">Available Primitives</h2>
-      
+
       <div className="spell-panel__list">
         {availableSpells.map((spell) => {
           const isActive = activeSpellIdentifier === spell.spellIdentifier;
@@ -85,11 +89,43 @@ const handleCastSpell = async () => {
           );
         })}
       </div>
+      <div
+        style={{
+          padding: "10px",
+          background: "#222",
+          borderRadius: "6px",
+          margin: "10px 0",
+          textAlign: "left",
+        }}
+      >
+        <h3 style={{ margin: "0 0 10px 0", fontSize: "14px" }}>Spell Customization</h3>
 
+        <div style={{ display: "flex", gap: "10px", alignItems: "center", marginBottom: "8px" }}>
+          <label style={{ fontSize: "12px", width: "8px" }}>Color:</label>
+          <input
+            type="color"
+            value={chosenColor}
+            onChange={(e) => setChosenColor(e.target.value)}
+            style={{ border: "none", background: "none", cursor: "pointer" }}
+          />
+        </div>
+
+        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+          <label style={{ fontSize: "12px", width: "80px" }}>Size: {gridSize} Grids</label>
+          <input
+            type="range"
+            min="1"
+            max="8"
+            value={gridSize}
+            onChange={(e) => setGridSize(Number(e.target.value))}
+            style={{ flex: 1 }}
+          />
+        </div>
+      </div>
       <div className="spell-panel__actions">
-        <Button 
-          variant="primary" 
-          isFullWidth 
+        <Button
+          variant="primary"
+          isFullWidth
           onClick={handleCastSpell}
           disabled={!activeSpellIdentifier}
         >

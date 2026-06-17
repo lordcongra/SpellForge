@@ -13,14 +13,18 @@ export default function App() {
   return (
     <div className="app-container">
       {/* 2. We place the invisible engine right here inside the main container */}
-      <SpellEngine /> 
-      
+      <SpellEngine />
+
       <h1>SpellForge</h1>
       <div className="status-panel">
-        <p><strong>Status:</strong> {userId ? "Connected" : "Connecting..."}</p>
-        <p><strong>Role:</strong> {userRole || "..."}</p>
+        <p>
+          <strong>Status:</strong> {userId ? "Connected" : "Connecting..."}
+        </p>
+        <p>
+          <strong>Role:</strong> {userRole || "..."}
+        </p>
       </div>
-      
+
       <SpellPanel />
     </div>
   );

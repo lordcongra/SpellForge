@@ -21,7 +21,9 @@ export function useObrInit() {
             setIdentity(userId, userRole);
           });
         } else {
-          console.warn("Owlbear Rodeo SDK is not available. Are you running this outside of the OBR room?");
+          console.warn(
+            "Owlbear Rodeo SDK is not available. Are you running this outside of the OBR room?"
+          );
         }
       } catch (error) {
         console.error("Failed to initialize Owlbear Rodeo connection:", error);

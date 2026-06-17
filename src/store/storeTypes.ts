@@ -19,11 +19,13 @@ export interface SpellState {
 
 export interface ParticleConfiguration {
   emitterIdentifier: string;
+  spellType: string;
   originCoordinateX: number;
   originCoordinateY: number;
   particleCount: number;
   emitterLifeSpan: number;
   spellColorHex: string;
+  spellSize: number;
 }
 
 export interface ParticleState {
