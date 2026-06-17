@@ -7,8 +7,21 @@ export const useStore = create<RootStore>((set) => ({
   userRole: null,
   setIdentity: (userId, userRole) => set({ userId, userRole }),
 
-  // Spell Slice
-  availableSpells: [],
+  // Spell Slice - Seeded with MVP primitives
+  availableSpells: [
+    {
+      spellIdentifier: "primitive-line-ray",
+      spellName: "Straight Line Ray",
+      spellColorHex: "#ff3366",
+      durationInSeconds: 2,
+    },
+    {
+      spellIdentifier: "primitive-token-burst",
+      spellName: "Token Shape Burst",
+      spellColorHex: "#33ccff",
+      durationInSeconds: 3,
+    },
+  ],
   activeSpellIdentifier: null,
   setActiveSpell: (activeSpellIdentifier) => set({ activeSpellIdentifier }),
 
