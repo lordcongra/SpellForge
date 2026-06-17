@@ -20,7 +20,7 @@ export function SpellEngine() {
       // 1. Build a native Owlbear Rodeo shape
       // 1. Determine which primitive shape to build based on the spell type
       // 1. Determine which primitive shape to build based on the spell type
-      let primitiveShapeBuilder = buildShape()
+      let spellShapeBuilder = buildShape()
         .fillColor(emitter.spellColorHex) // Dynamic Color from State!
         .fillOpacity(0.5)
         .strokeColor(emitter.spellColorHex)
@@ -32,27 +32,27 @@ export function SpellEngine() {
 
       if (emitter.spellType === "primitive-line-ray") {
         // Build a ray projecting to the right using dynamic size length, 40px thick
-        primitiveShapeBuilder = primitiveShapeBuilder
+        spellShapeBuilder = spellShapeBuilder
           .shapeType("RECTANGLE")
           .position({ x: emitter.originCoordinateX, y: emitter.originCoordinateY - 20 })
           .width(pixelSize)
           .height(40);
       } else {
         // Default to Token Burst circle using dynamic size diameter
-        primitiveShapeBuilder = primitiveShapeBuilder
+        spellShapeBuilder = spellShapeBuilder
           .shapeType("CIRCLE")
           .position({ x: emitter.originCoordinateX, y: emitter.originCoordinateY })
           .width(pixelSize)
           .height(pixelSize);
       }
 
-      const primitiveBurst = primitiveShapeBuilder.build();
+      const spellShape = spellShapeBuilder.build();
 
       // 2. Add it locally to the scene (only visible to the person casting for now)
-      OBR.scene.items.addItems([primitiveBurst]).then(() => {
+      OBR.scene.items.addItems([spellShape]).then(() => {
         // 3. Set a timer to clean up the spell when the duration expires
         setTimeout(() => {
-          OBR.scene.items.deleteItems([primitiveBurst.id]);
+          OBR.scene.items.deleteItems([spellShape.id]);
           removeParticleEmitter(emitter.emitterIdentifier);
           processedEmitters.current.delete(emitter.emitterIdentifier);
         }, emitter.emitterLifeSpan * 1000);
@@ -60,6 +60,5 @@ export function SpellEngine() {
     });
   }, [activeEmitters, removeParticleEmitter]);
 
-  // This component doesn't have a UI, it's just pure logic!
   return null;
 }

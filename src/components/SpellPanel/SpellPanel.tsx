@@ -46,7 +46,7 @@ export function SpellPanel() {
         spellType: activeSpellIdentifier,
         originCoordinateX: casterToken.position.x,
         originCoordinateY: casterToken.position.y,
-        particleCount: 50, // A hardcoded base amount for our primitive test
+        particleCount: 50,
         emitterLifeSpan: spellDefinition.durationInSeconds,
         spellColorHex: chosenColor,
         spellSize: gridSize,
