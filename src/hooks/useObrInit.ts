@@ -179,6 +179,7 @@ export function useObrInit() {
               availableSpells,
               configuredColorHex,
               configuredSize,
+              configuredDurationMs,
               keepTargetsAfterCast,
               addParticleEmitters,
               clearTargetPositions,
@@ -206,7 +207,7 @@ export function useObrInit() {
                 originCoordinateX: casterOrigin.x,
                 originCoordinateY: casterOrigin.y,
                 particleCount: 50,
-                emitterLifeSpan: spellDefinition.durationInSeconds,
+                emitterLifeSpan: configuredDurationMs,
                 spellColorHex: configuredColorHex,
                 spellSize: configuredSize,
               });
@@ -218,7 +219,7 @@ export function useObrInit() {
                 originCoordinateX: target.x,
                 originCoordinateY: target.y,
                 particleCount: 50,
-                emitterLifeSpan: spellDefinition.durationInSeconds,
+                emitterLifeSpan: configuredDurationMs,
                 spellColorHex: configuredColorHex,
                 spellSize: configuredSize,
               }));
@@ -233,7 +234,7 @@ export function useObrInit() {
                   originCoordinateX: casterOrigin.x,
                   originCoordinateY: casterOrigin.y,
                   particleCount: 50,
-                  emitterLifeSpan: spellDefinition.durationInSeconds,
+                  emitterLifeSpan: configuredDurationMs,
                   spellColorHex: configuredColorHex,
                   spellSize: configuredSize,
                 });
@@ -247,7 +248,7 @@ export function useObrInit() {
                   destinationCoordinateX: destinationTarget.x,
                   destinationCoordinateY: destinationTarget.y,
                   particleCount: 50,
-                  emitterLifeSpan: spellDefinition.durationInSeconds,
+                  emitterLifeSpan: configuredDurationMs,
                   spellColorHex: configuredColorHex,
                   spellSize: configuredSize,
                 }));

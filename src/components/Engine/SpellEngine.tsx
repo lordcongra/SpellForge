@@ -24,14 +24,11 @@ export function SpellEngine() {
         let endX = emitter.destinationCoordinateX;
         let endY = emitter.destinationCoordinateY;
 
-        // Fallback if they only clicked once (Just shoots to the right)
         if (endX === undefined || endY === undefined) {
           endX = startX + pixelSize;
           endY = startY;
         }
 
-        // OBR Paths use relative commands. 
-        // 0 = MOVE (Start Point), 1 = LINE (Draw to X/Y relative to the start point)
         spellItem = buildPath()
           .commands([
             [0, 0, 0], 
@@ -40,13 +37,12 @@ export function SpellEngine() {
           .position({ x: startX, y: startY })
           .strokeColor(emitter.spellColorHex)
           .strokeOpacity(0.8)
-          .strokeWidth(40) // Beam thickness
+          .strokeWidth(40) 
           .fillOpacity(0)
           .layer("ATTACHMENT")
           .build();
 
       } else {
-        // Token Burst logic remains the same
         const burstX = emitter.destinationCoordinateX ?? emitter.originCoordinateX;
         const burstY = emitter.destinationCoordinateY ?? emitter.originCoordinateY;
 
@@ -73,7 +69,7 @@ export function SpellEngine() {
             }
             removeParticleEmitter(emitter.emitterIdentifier);
             processedEmitters.current.delete(emitter.emitterIdentifier);
-          }, emitter.emitterLifeSpan * 1000);
+          }, emitter.emitterLifeSpan); // No longer multiplied! Runs exactly in ms.
         });
       } catch (error) {
         console.error("Failed to add spell shape to scene:", error);

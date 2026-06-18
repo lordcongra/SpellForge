@@ -4,7 +4,6 @@ export interface IdentityState {
   setIdentity: (userId: string, userRole: "GM" | "PLAYER") => void;
 }
 
-// 1. Structural Enums for Granular Control
 export type ShapePrimitive = "CIRCLE" | "RECTANGLE" | "LINE" | "CONE" | "PLUS" | "STAR";
 export type AnimationBehavior = "INSTANT" | "EXPAND_OUTWARD" | "CONTRACT_INWARD" | "TRAVEL_PROJECTILE" | "TRAVEL_BEAM" | "PULSE";
 export type TargetLogic = "CASTER_ONLY" | "ALL_SIMULTANEOUS" | "CASTER_TO_TARGETS_SIMULTANEOUS" | "CHAIN_SEQUENTIAL" | "WALL_CONNECTED" | "AURA_ATTACHED";
@@ -13,14 +12,13 @@ export interface SpellDefinition {
   spellIdentifier: string;
   spellName: string;
   spellColorHex: string;
-  durationInSeconds: number; // How long it stays on the map
+  durationInMs: number; // Switched to milliseconds
   
-  // New Granular Controls
   shapePrimitive: ShapePrimitive;
   animationBehavior: AnimationBehavior;
   targetLogic: TargetLogic;
-  travelTimeInMs?: number; // Used if AnimationBehavior is a TRAVEL type
-  layerOverride?: "ATTACHMENT" | "PROP" | "MAP"; // Under or over tokens
+  travelTimeInMs?: number; 
+  layerOverride?: "ATTACHMENT" | "PROP" | "MAP"; 
 }
 
 export interface TargetCoordinate {
@@ -35,6 +33,7 @@ export interface SpellState {
   targetPositions: TargetCoordinate[];
   configuredColorHex: string;
   configuredSize: number;
+  configuredDurationMs: number; // Switched to milliseconds
   keepTargetsAfterCast: boolean;
   setActiveSpell: (spellIdentifier: string) => void;
   addTargetPosition: (target: TargetCoordinate) => void;
@@ -42,13 +41,13 @@ export interface SpellState {
   clearTargetPositions: () => void;
   setConfiguredColorHex: (colorHex: string) => void;
   setConfiguredSize: (size: number) => void;
+  setConfiguredDurationMs: (durationMs: number) => void; 
   setKeepTargetsAfterCast: (shouldKeep: boolean) => void;
 }
 
 export interface ParticleConfiguration {
   emitterIdentifier: string;
   
-  // Passed down from the Spell Definition
   shapePrimitive: ShapePrimitive;
   animationBehavior: AnimationBehavior;
   
@@ -58,7 +57,7 @@ export interface ParticleConfiguration {
   destinationCoordinateY?: number;
   
   particleCount: number;
-  emitterLifeSpan: number; // Extracted duration
+  emitterLifeSpan: number; // This is now evaluated as milliseconds by the engine
   travelTimeInMs?: number;
   
   spellColorHex: string;

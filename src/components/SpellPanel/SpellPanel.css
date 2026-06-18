@@ -73,7 +73,7 @@
   text-align: left;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .spell-customization__header {
@@ -85,18 +85,42 @@
   display: flex;
   gap: 10px;
   align-items: center;
+  justify-content: space-between;
 }
 
 .spell-customization__row--checkbox {
-  margin-top: 8px;
+  margin-top: 4px;
   font-size: 14px;
   color: #ccc;
   cursor: pointer;
+  justify-content: flex-start;
 }
 
 .spell-customization__label {
   font-size: 12px;
-  min-width: 40px;
+  min-width: 50px;
+}
+
+.spell-customization__input-group {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  gap: 8px;
+}
+
+.spell-customization__number-input {
+  width: 60px;
+  background: #333;
+  color: white;
+  border: 1px solid #555;
+  border-radius: 4px;
+  padding: 4px;
+  font-size: 12px;
+  text-align: right;
+}
+
+.spell-customization__number-input:focus {
+  outline: 1px solid #a855f7;
 }
 
 .spell-customization__color-picker {
@@ -107,6 +131,13 @@
 
 .spell-customization__slider {
   flex: 1;
+  cursor: pointer;
+}
+
+.spell-customization__unit {
+  font-size: 10px;
+  color: #aaa;
+  min-width: 14px;
 }
 
 .spell-panel__actions {

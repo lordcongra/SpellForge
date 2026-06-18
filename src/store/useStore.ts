@@ -13,16 +13,16 @@ export const useStore = create<RootStore>((set) => ({
       spellIdentifier: "line-ray",
       spellName: "Straight Line Ray",
       spellColorHex: "#ff3366",
-      durationInSeconds: 2,
-      shapePrimitive: "RECTANGLE",
-      animationBehavior: "TRAVEL_PROJECTILE",
+      durationInMs: 2000,
+      shapePrimitive: "LINE",
+      animationBehavior: "TRAVEL_BEAM",
       targetLogic: "CASTER_TO_TARGETS_SIMULTANEOUS",
     },
     {
       spellIdentifier: "token-burst",
       spellName: "Token Shape Burst",
       spellColorHex: "#33ccff",
-      durationInSeconds: 3,
+      durationInMs: 3000,
       shapePrimitive: "CIRCLE",
       animationBehavior: "EXPAND_OUTWARD",
       targetLogic: "ALL_SIMULTANEOUS",
@@ -32,9 +32,19 @@ export const useStore = create<RootStore>((set) => ({
   targetPositions: [],
   configuredColorHex: "#3498db",
   configuredSize: 2,
+  configuredDurationMs: 2000, 
   keepTargetsAfterCast: false,
   
-  setActiveSpell: (activeSpellIdentifier) => set({ activeSpellIdentifier }),
+  setActiveSpell: (activeSpellIdentifier) => {
+    set((state) => {
+      const spell = state.availableSpells.find(s => s.spellIdentifier === activeSpellIdentifier);
+      return { 
+        activeSpellIdentifier,
+        configuredColorHex: spell ? spell.spellColorHex : state.configuredColorHex,
+        configuredDurationMs: spell ? spell.durationInMs : state.configuredDurationMs
+      };
+    });
+  },
   
   addTargetPosition: (targetCoordinate) => 
     set((state) => ({ targetPositions: [...state.targetPositions, targetCoordinate] })),
@@ -49,6 +59,7 @@ export const useStore = create<RootStore>((set) => ({
   clearTargetPositions: () => set({ targetPositions: [] }),
   setConfiguredColorHex: (colorHex) => set({ configuredColorHex: colorHex }),
   setConfiguredSize: (size) => set({ configuredSize: size }),
+  setConfiguredDurationMs: (durationMs) => set({ configuredDurationMs: durationMs }),
   setKeepTargetsAfterCast: (shouldKeep) => set({ keepTargetsAfterCast: shouldKeep }),
 
   // Particle Slice

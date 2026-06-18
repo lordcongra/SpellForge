@@ -10,11 +10,13 @@ export function SpellPanel() {
   const targetPositions = useStore((state) => state.targetPositions);
   const configuredColorHex = useStore((state) => state.configuredColorHex);
   const configuredSize = useStore((state) => state.configuredSize);
+  const configuredDurationMs = useStore((state) => state.configuredDurationMs);
   const keepTargetsAfterCast = useStore((state) => state.keepTargetsAfterCast);
 
   const setActiveSpell = useStore((state) => state.setActiveSpell);
   const setConfiguredColorHex = useStore((state) => state.setConfiguredColorHex);
   const setConfiguredSize = useStore((state) => state.setConfiguredSize);
+  const setConfiguredDurationMs = useStore((state) => state.setConfiguredDurationMs);
   const setKeepTargetsAfterCast = useStore((state) => state.setKeepTargetsAfterCast);
   const addParticleEmitters = useStore((state) => state.addParticleEmitters);
   const clearTargetPositions = useStore((state) => state.clearTargetPositions);
@@ -48,7 +50,7 @@ export function SpellPanel() {
           originCoordinateX: casterOrigin.x,
           originCoordinateY: casterOrigin.y,
           particleCount: 50,
-          emitterLifeSpan: spellDefinition.durationInSeconds,
+          emitterLifeSpan: configuredDurationMs,
           spellColorHex: configuredColorHex,
           spellSize: configuredSize,
         });
@@ -60,7 +62,7 @@ export function SpellPanel() {
           originCoordinateX: target.x,
           originCoordinateY: target.y,
           particleCount: 50,
-          emitterLifeSpan: spellDefinition.durationInSeconds,
+          emitterLifeSpan: configuredDurationMs,
           spellColorHex: configuredColorHex,
           spellSize: configuredSize,
         }));
@@ -75,7 +77,7 @@ export function SpellPanel() {
             originCoordinateX: casterOrigin.x,
             originCoordinateY: casterOrigin.y,
             particleCount: 50,
-            emitterLifeSpan: spellDefinition.durationInSeconds,
+            emitterLifeSpan: configuredDurationMs,
             spellColorHex: configuredColorHex,
             spellSize: configuredSize,
           });
@@ -89,7 +91,7 @@ export function SpellPanel() {
             destinationCoordinateX: destinationTarget.x,
             destinationCoordinateY: destinationTarget.y,
             particleCount: 50,
-            emitterLifeSpan: spellDefinition.durationInSeconds,
+            emitterLifeSpan: configuredDurationMs,
             spellColorHex: configuredColorHex,
             spellSize: configuredSize,
           }));
@@ -127,7 +129,7 @@ export function SpellPanel() {
             >
               <div className="spell-card__info">
                 <p className="spell-card__title">{spell.spellName}</p>
-                <p className="spell-card__meta">Duration: {spell.durationInSeconds}s</p>
+                <p className="spell-card__meta">Default Duration: {spell.durationInMs / 1000}s</p>
               </div>
               <div
                 className="spell-card__color-indicator"
@@ -153,15 +155,51 @@ export function SpellPanel() {
         </div>
 
         <div className="spell-customization__row">
-          <label className="spell-customization__label">Size: {configuredSize} Grids</label>
-          <input
-            type="range"
-            min="1"
-            max="8"
-            value={configuredSize}
-            onChange={(e) => setConfiguredSize(Number(e.target.value))}
-            className="spell-customization__slider"
-          />
+          <label className="spell-customization__label">Size:</label>
+          <div className="spell-customization__input-group">
+            <input
+              type="number"
+              min="0.1"
+              step="0.5"
+              value={configuredSize}
+              onChange={(e) => setConfiguredSize(Number(e.target.value))}
+              className="spell-customization__number-input"
+            />
+            <span className="spell-customization__unit">Grid</span>
+            <input
+              type="range"
+              min="1"
+              max="10"
+              step="0.5"
+              value={configuredSize}
+              onChange={(e) => setConfiguredSize(Number(e.target.value))}
+              className="spell-customization__slider"
+            />
+          </div>
+        </div>
+
+        <div className="spell-customization__row">
+          <label className="spell-customization__label">Duration:</label>
+          <div className="spell-customization__input-group">
+            <input
+              type="number"
+              min="100"
+              step="100"
+              value={configuredDurationMs}
+              onChange={(e) => setConfiguredDurationMs(Number(e.target.value))}
+              className="spell-customization__number-input"
+            />
+            <span className="spell-customization__unit">ms</span>
+            <input
+              type="range"
+              min="1"
+              max="60"
+              step="1"
+              value={Math.round(configuredDurationMs / 1000)}
+              onChange={(e) => setConfiguredDurationMs(Number(e.target.value) * 1000)}
+              className="spell-customization__slider"
+            />
+          </div>
         </div>
         
         <div className="spell-customization__row spell-customization__row--checkbox">
