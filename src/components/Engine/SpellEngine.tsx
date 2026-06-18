@@ -18,7 +18,6 @@ export function SpellEngine() {
       const pixelSize = emitter.spellSize * 150;
 
       if (emitter.shapePrimitive === "RECTANGLE" || emitter.shapePrimitive === "LINE") {
-        
         const startX = emitter.originCoordinateX;
         const startY = emitter.originCoordinateY;
         let endX = emitter.destinationCoordinateX;
@@ -31,17 +30,54 @@ export function SpellEngine() {
 
         spellItem = buildPath()
           .commands([
-            [0, 0, 0], 
-            [1, endX - startX, endY - startY]
+            [0, 0, 0],
+            [1, endX - startX, endY - startY],
           ])
           .position({ x: startX, y: startY })
           .strokeColor(emitter.spellColorHex)
           .strokeOpacity(0.8)
-          .strokeWidth(40) 
+          .strokeWidth(40)
           .fillOpacity(0)
           .layer("ATTACHMENT")
           .build();
+      } else if (emitter.shapePrimitive === "CONE") {
+        const startX = emitter.originCoordinateX;
+        const startY = emitter.originCoordinateY;
+        let endX = emitter.destinationCoordinateX;
+        let endY = emitter.destinationCoordinateY;
 
+        if (endX === undefined || endY === undefined) {
+          endX = startX + pixelSize;
+          endY = startY;
+        }
+
+        // 1. Calculate the full length of the cone
+        const distance = Math.hypot(endX - startX, endY - startY);
+
+        // 2. Determine the rotation angle to aim the cone at the target
+        const angleInRadians = Math.atan2(endY - startY, endX - startX);
+        const angleInDegrees = angleInRadians * (180 / Math.PI);
+
+        // 3. For a standard 53-degree cone, the base width is roughly equal to its length.
+        // We use half the base to draw the top and bottom corners.
+        const halfBase = distance / 2;
+
+        // Draw a triangle path starting at the caster's origin point
+        spellItem = buildPath()
+          .commands([
+            [0, 0, 0], // Move to origin
+            [1, distance, halfBase], // Draw line to the bottom corner of the cone's base
+            [1, distance, -halfBase], // Draw line to the top corner of the cone's base
+            [1, 0, 0], // Close the triangle by drawing a line back to the origin
+          ])
+          .position({ x: startX, y: startY })
+          .rotation(angleInDegrees) // Aim the entire triangle at the target!
+          .fillColor(emitter.spellColorHex)
+          .fillOpacity(0.5)
+          .strokeColor(emitter.spellColorHex)
+          .strokeOpacity(0.8)
+          .layer("ATTACHMENT")
+          .build();
       } else {
         const burstX = emitter.destinationCoordinateX ?? emitter.originCoordinateX;
         const burstY = emitter.destinationCoordinateY ?? emitter.originCoordinateY;
@@ -69,7 +105,7 @@ export function SpellEngine() {
             }
             removeParticleEmitter(emitter.emitterIdentifier);
             processedEmitters.current.delete(emitter.emitterIdentifier);
-          }, emitter.emitterLifeSpan); // No longer multiplied! Runs exactly in ms.
+          }, emitter.emitterLifeSpan);
         });
       } catch (error) {
         console.error("Failed to add spell shape to scene:", error);

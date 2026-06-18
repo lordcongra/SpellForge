@@ -68,7 +68,7 @@ export function SpellPanel() {
         }));
       } else if (spellDefinition.targetLogic === "CASTER_TO_TARGETS_SIMULTANEOUS") {
         const destinations = targetPositions.slice(1);
-        
+
         if (destinations.length === 0) {
           newEmitters.push({
             emitterIdentifier: `${activeSpellIdentifier}-${casterOrigin.targetIdentifier}-${Date.now()}`,
@@ -105,7 +105,6 @@ export function SpellPanel() {
         await OBR.scene.local.deleteItems(reticleIdentifiers);
         clearTargetPositions();
       }
-
     } catch (error) {
       console.error("Error casting spell:", error);
     }
@@ -201,7 +200,7 @@ export function SpellPanel() {
             />
           </div>
         </div>
-        
+
         <div className="spell-customization__row spell-customization__row--checkbox">
           <input
             type="checkbox"
@@ -220,7 +219,9 @@ export function SpellPanel() {
           onClick={handleCastSpell}
           disabled={!activeSpellIdentifier || targetPositions.length === 0}
         >
-          {targetPositions.length > 0 ? `Cast Spell (${targetPositions.length > 1 ? targetPositions.length - 1 : 1} Targets)` : "Select Targets First"}
+          {targetPositions.length > 0
+            ? `Cast Spell (${targetPositions.length > 1 ? targetPositions.length - 1 : 1} Targets)`
+            : "Select Targets First"}
         </Button>
       </div>
     </div>

@@ -123,6 +123,18 @@
   outline: 1px solid #a855f7;
 }
 
+/* Hides the up/down arrows in number inputs */
+.spell-customization__number-input::-webkit-outer-spin-button,
+.spell-customization__number-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.spell-customization__number-input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
 .spell-customization__color-picker {
   border: none;
   background: none;

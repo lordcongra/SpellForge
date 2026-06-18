@@ -5,20 +5,32 @@ export interface IdentityState {
 }
 
 export type ShapePrimitive = "CIRCLE" | "RECTANGLE" | "LINE" | "CONE" | "PLUS" | "STAR";
-export type AnimationBehavior = "INSTANT" | "EXPAND_OUTWARD" | "CONTRACT_INWARD" | "TRAVEL_PROJECTILE" | "TRAVEL_BEAM" | "PULSE";
-export type TargetLogic = "CASTER_ONLY" | "ALL_SIMULTANEOUS" | "CASTER_TO_TARGETS_SIMULTANEOUS" | "CHAIN_SEQUENTIAL" | "WALL_CONNECTED" | "AURA_ATTACHED";
+export type AnimationBehavior =
+  | "INSTANT"
+  | "EXPAND_OUTWARD"
+  | "CONTRACT_INWARD"
+  | "TRAVEL_PROJECTILE"
+  | "TRAVEL_BEAM"
+  | "PULSE";
+export type TargetLogic =
+  | "CASTER_ONLY"
+  | "ALL_SIMULTANEOUS"
+  | "CASTER_TO_TARGETS_SIMULTANEOUS"
+  | "CHAIN_SEQUENTIAL"
+  | "WALL_CONNECTED"
+  | "AURA_ATTACHED";
 
 export interface SpellDefinition {
   spellIdentifier: string;
   spellName: string;
   spellColorHex: string;
   durationInMs: number; // Switched to milliseconds
-  
+
   shapePrimitive: ShapePrimitive;
   animationBehavior: AnimationBehavior;
   targetLogic: TargetLogic;
-  travelTimeInMs?: number; 
-  layerOverride?: "ATTACHMENT" | "PROP" | "MAP"; 
+  travelTimeInMs?: number;
+  layerOverride?: "ATTACHMENT" | "PROP" | "MAP";
 }
 
 export interface TargetCoordinate {
@@ -41,25 +53,25 @@ export interface SpellState {
   clearTargetPositions: () => void;
   setConfiguredColorHex: (colorHex: string) => void;
   setConfiguredSize: (size: number) => void;
-  setConfiguredDurationMs: (durationMs: number) => void; 
+  setConfiguredDurationMs: (durationMs: number) => void;
   setKeepTargetsAfterCast: (shouldKeep: boolean) => void;
 }
 
 export interface ParticleConfiguration {
   emitterIdentifier: string;
-  
+
   shapePrimitive: ShapePrimitive;
   animationBehavior: AnimationBehavior;
-  
+
   originCoordinateX: number;
   originCoordinateY: number;
   destinationCoordinateX?: number;
   destinationCoordinateY?: number;
-  
+
   particleCount: number;
   emitterLifeSpan: number; // This is now evaluated as milliseconds by the engine
   travelTimeInMs?: number;
-  
+
   spellColorHex: string;
   spellSize: number;
 }

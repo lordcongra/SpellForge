@@ -75,7 +75,7 @@ export function useObrInit() {
 
             const currentState = useStore.getState();
             const isPrimaryTarget = currentState.targetPositions.length === 0;
-            const reticleColor = isPrimaryTarget ? "#9b59b6" : "#00e5ff"; 
+            const reticleColor = isPrimaryTarget ? "#9b59b6" : "#00e5ff";
             const newReticleIdentifier = `spellforge-target-reticle-${Date.now()}`;
 
             currentState.addTargetPosition({
@@ -136,7 +136,7 @@ export function useObrInit() {
                 );
                 currentState.removeTargetPosition(targetToRemove.targetIdentifier);
               } catch (error) {
-               console.error("Failed to remove target reticle:", error);
+                console.error("Failed to remove target reticle:", error);
               }
             }
           },
@@ -225,7 +225,7 @@ export function useObrInit() {
               }));
             } else if (spellDefinition.targetLogic === "CASTER_TO_TARGETS_SIMULTANEOUS") {
               const destinations = targetPositions.slice(1);
-              
+
               if (destinations.length === 0) {
                 newEmitters.push({
                   emitterIdentifier: `${activeSpellIdentifier}-${casterOrigin.targetIdentifier}-${Date.now()}`,
