@@ -14,7 +14,9 @@ export interface SpellDefinition {
 export interface SpellState {
   availableSpells: SpellDefinition[];
   activeSpellIdentifier: string | null;
+  primaryTargetPosition: { x: number; y: number } | null;
   setActiveSpell: (spellIdentifier: string) => void;
+  setPrimaryTarget: (position: { x: number; y: number } | null) => void;
 }
 
 export interface ParticleConfiguration {

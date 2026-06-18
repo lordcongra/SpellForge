@@ -5,7 +5,9 @@ export const useStore = create<RootStore>((set) => ({
   // Identity Slice
   userId: null,
   userRole: null,
+  primaryTargetPosition: null,
   setIdentity: (userId, userRole) => set({ userId, userRole }),
+  setPrimaryTarget: (position) => set({ primaryTargetPosition: position }),
 
   // Spell Slice - Seeded with MVP primitives
   availableSpells: [

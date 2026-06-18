@@ -6,6 +6,7 @@ let reticleSpinInterval: ReturnType<typeof setInterval> | null = null;
 
 export function useObrInit() {
   const setIdentity = useStore((state) => state.setIdentity);
+  const setPrimaryTarget = useStore((state) => state.setPrimaryTarget);
 
   useEffect(() => {
     if (OBR.isAvailable) {
@@ -61,7 +62,7 @@ export function useObrInit() {
               clickPosition = event.target.position;
               attachedTokenId = event.target.id;
             }
-
+            setPrimaryTarget(clickPosition);
             // 2. Clear existing targeting reticles AND stop the old animation loop
             await OBR.scene.local.deleteItems(["spellforge-target-reticle"]);
             if (reticleSpinInterval) {
