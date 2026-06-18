@@ -11,12 +11,26 @@ export interface SpellDefinition {
   durationInSeconds: number;
 }
 
+export interface TargetCoordinate {
+  targetIdentifier: string;
+  x: number;
+  y: number;
+}
+
 export interface SpellState {
   availableSpells: SpellDefinition[];
   activeSpellIdentifier: string | null;
-  primaryTargetPosition: { x: number; y: number } | null;
+  targetPositions: TargetCoordinate[];
+  configuredColorHex: string;
+  configuredSize: number;
+  keepTargetsAfterCast: boolean;
   setActiveSpell: (spellIdentifier: string) => void;
-  setPrimaryTarget: (position: { x: number; y: number } | null) => void;
+  addTargetPosition: (target: TargetCoordinate) => void;
+  removeTargetPosition: (targetIdentifier: string) => void;
+  clearTargetPositions: () => void;
+  setConfiguredColorHex: (colorHex: string) => void;
+  setConfiguredSize: (size: number) => void;
+  setKeepTargetsAfterCast: (shouldKeep: boolean) => void;
 }
 
 export interface ParticleConfiguration {
@@ -32,7 +46,7 @@ export interface ParticleConfiguration {
 
 export interface ParticleState {
   activeEmitters: ParticleConfiguration[];
-  addParticleEmitter: (emitterConfiguration: ParticleConfiguration) => void;
+  addParticleEmitters: (emitterConfigurations: ParticleConfiguration[]) => void;
   removeParticleEmitter: (emitterIdentifier: string) => void;
 }
 

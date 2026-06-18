@@ -6,39 +6,30 @@ export function SpellEngine() {
   const activeEmitters = useStore((state) => state.activeEmitters);
   const removeParticleEmitter = useStore((state) => state.removeParticleEmitter);
 
-  // We use a ref to keep track of which spells we've already drawn
-  // so we don't accidentally draw duplicates when React re-renders.
   const processedEmitters = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     activeEmitters.forEach((emitter) => {
       if (processedEmitters.current.has(emitter.emitterIdentifier)) return;
 
-      // Mark as processed immediately
       processedEmitters.current.add(emitter.emitterIdentifier);
 
-      // 1. Build a native Owlbear Rodeo shape
-      // 1. Determine which primitive shape to build based on the spell type
-      // 1. Determine which primitive shape to build based on the spell type
       let spellShapeBuilder = buildShape()
-        .fillColor(emitter.spellColorHex) // Dynamic Color from State!
+        .fillColor(emitter.spellColorHex)
         .fillOpacity(0.5)
         .strokeColor(emitter.spellColorHex)
         .strokeOpacity(0.8)
         .layer("ATTACHMENT");
 
-      // Standard OBR grid square is 150px
       const pixelSize = emitter.spellSize * 150;
 
-      if (emitter.spellType === "primitive-line-ray") {
-        // Build a ray projecting to the right using dynamic size length, 40px thick
+      if (emitter.spellType === "line-ray") {
         spellShapeBuilder = spellShapeBuilder
           .shapeType("RECTANGLE")
           .position({ x: emitter.originCoordinateX, y: emitter.originCoordinateY - 20 })
           .width(pixelSize)
           .height(40);
       } else {
-        // Default to Token Burst circle using dynamic size diameter
         spellShapeBuilder = spellShapeBuilder
           .shapeType("CIRCLE")
           .position({ x: emitter.originCoordinateX, y: emitter.originCoordinateY })
@@ -48,15 +39,21 @@ export function SpellEngine() {
 
       const spellShape = spellShapeBuilder.build();
 
-      // 2. Add it locally to the scene (only visible to the person casting for now)
-      OBR.scene.items.addItems([spellShape]).then(() => {
-        // 3. Set a timer to clean up the spell when the duration expires
-        setTimeout(() => {
-          OBR.scene.items.deleteItems([spellShape.id]);
-          removeParticleEmitter(emitter.emitterIdentifier);
-          processedEmitters.current.delete(emitter.emitterIdentifier);
-        }, emitter.emitterLifeSpan * 1000);
-      });
+      try {
+        OBR.scene.items.addItems([spellShape]).then(() => {
+          setTimeout(() => {
+            try {
+              OBR.scene.items.deleteItems([spellShape.id]);
+            } catch (cleanupError) {
+              console.error("Failed to clean up spell shape:", cleanupError);
+            }
+            removeParticleEmitter(emitter.emitterIdentifier);
+            processedEmitters.current.delete(emitter.emitterIdentifier);
+          }, emitter.emitterLifeSpan * 1000);
+        });
+      } catch (error) {
+        console.error("Failed to add spell shape to scene:", error);
+      }
     });
   }, [activeEmitters, removeParticleEmitter]);
 

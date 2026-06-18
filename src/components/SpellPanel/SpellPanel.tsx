@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useStore } from "../../store/useStore";
 import { Button } from "../Button/Button";
 import "./SpellPanel.css";
@@ -7,59 +6,61 @@ import OBR from "@owlbear-rodeo/sdk";
 export function SpellPanel() {
   const availableSpells = useStore((state) => state.availableSpells);
   const activeSpellIdentifier = useStore((state) => state.activeSpellIdentifier);
+  const targetPositions = useStore((state) => state.targetPositions);
+  const configuredColorHex = useStore((state) => state.configuredColorHex);
+  const configuredSize = useStore((state) => state.configuredSize);
+  const keepTargetsAfterCast = useStore((state) => state.keepTargetsAfterCast);
+
   const setActiveSpell = useStore((state) => state.setActiveSpell);
-  const addParticleEmitter = useStore((state) => state.addParticleEmitter);
-  const [chosenColor, setChosenColor] = useState("#3498db");
-  const [gridSize, setGridSize] = useState(2);
+  const setConfiguredColorHex = useStore((state) => state.setConfiguredColorHex);
+  const setConfiguredSize = useStore((state) => state.setConfiguredSize);
+  const setKeepTargetsAfterCast = useStore((state) => state.setKeepTargetsAfterCast);
+  const addParticleEmitters = useStore((state) => state.addParticleEmitters);
+  const clearTargetPositions = useStore((state) => state.clearTargetPositions);
 
   const handleCastSpell = async () => {
-    if (!activeSpellIdentifier) return;
+    if (!activeSpellIdentifier) {
+      console.warn("No spell selected!");
+      return;
+    }
+
+    if (targetPositions.length === 0) {
+      console.warn("No targets selected!");
+      return;
+    }
 
     try {
-      // 1. Get the IDs of whatever the user currently has selected on the map
-      const selectedItemIds = await OBR.player.getSelection();
-
-      if (!selectedItemIds || selectedItemIds.length === 0) {
-        console.warn("No token selected! Please select a token to act as the origin.");
-        return;
-      }
-
-      // 2. Fetch the full item data from the scene using those IDs
-      const selectedItems = await OBR.scene.items.getItems(selectedItemIds);
-
-      // 3. Grab the first selected item to be our "caster"
-      const casterToken = selectedItems[0];
-
-      // 4. Find the full spell details from our store
       const spellDefinition = availableSpells.find(
         (spell) => spell.spellIdentifier === activeSpellIdentifier
       );
 
       if (!spellDefinition) return;
 
-      // 5. Generate a unique ID for this specific cast
-      const uniqueCastIdentifier = `${activeSpellIdentifier}-${Date.now()}`;
-
-      // 6. Build the particle configuration
-      const newEmitter = {
-        emitterIdentifier: uniqueCastIdentifier,
+      const newEmitters = targetPositions.map((target) => ({
+        emitterIdentifier: `${activeSpellIdentifier}-${target.targetIdentifier}-${Date.now()}`,
         spellType: activeSpellIdentifier,
-        originCoordinateX: casterToken.position.x,
-        originCoordinateY: casterToken.position.y,
+        originCoordinateX: target.x,
+        originCoordinateY: target.y,
         particleCount: 50,
         emitterLifeSpan: spellDefinition.durationInSeconds,
-        spellColorHex: chosenColor,
-        spellSize: gridSize,
-      };
+        spellColorHex: configuredColorHex,
+        spellSize: configuredSize,
+      }));
 
-      // 7. Add it to our local state
-      addParticleEmitter(newEmitter);
+      addParticleEmitters(newEmitters);
 
-      console.log("Successfully added emitter to store:", newEmitter);
+      if (!keepTargetsAfterCast) {
+        // Extract all current target IDs to delete their visuals from the map
+        const reticleIdentifiers = targetPositions.map((t) => t.targetIdentifier);
+        await OBR.scene.local.deleteItems(reticleIdentifiers);
+        clearTargetPositions();
+      }
+
     } catch (error) {
-      console.error("Error retrieving token data from OBR:", error);
+      console.error("Error casting spell:", error);
     }
   };
+
   return (
     <div className="spell-panel">
       <h2 className="spell-panel__header">Available Primitives</h2>
@@ -89,47 +90,51 @@ export function SpellPanel() {
           );
         })}
       </div>
-      <div
-        style={{
-          padding: "10px",
-          background: "#222",
-          borderRadius: "6px",
-          margin: "10px 0",
-          textAlign: "left",
-        }}
-      >
-        <h3 style={{ margin: "0 0 10px 0", fontSize: "14px" }}>Spell Customization</h3>
 
-        <div style={{ display: "flex", gap: "10px", alignItems: "center", marginBottom: "8px" }}>
-          <label style={{ fontSize: "12px", width: "8px" }}>Color:</label>
+      <div className="spell-customization">
+        <h3 className="spell-customization__header">Spell Customization</h3>
+
+        <div className="spell-customization__row">
+          <label className="spell-customization__label">Color:</label>
           <input
             type="color"
-            value={chosenColor}
-            onChange={(e) => setChosenColor(e.target.value)}
-            style={{ border: "none", background: "none", cursor: "pointer" }}
+            value={configuredColorHex}
+            onChange={(e) => setConfiguredColorHex(e.target.value)}
+            className="spell-customization__color-picker"
           />
         </div>
 
-        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-          <label style={{ fontSize: "12px", width: "80px" }}>Size: {gridSize} Grids</label>
+        <div className="spell-customization__row">
+          <label className="spell-customization__label">Size: {configuredSize} Grids</label>
           <input
             type="range"
             min="1"
             max="8"
-            value={gridSize}
-            onChange={(e) => setGridSize(Number(e.target.value))}
-            style={{ flex: 1 }}
+            value={configuredSize}
+            onChange={(e) => setConfiguredSize(Number(e.target.value))}
+            className="spell-customization__slider"
           />
         </div>
+        
+        <div className="spell-customization__row spell-customization__row--checkbox">
+          <input
+            type="checkbox"
+            id="keep-targets-checkbox"
+            checked={keepTargetsAfterCast}
+            onChange={(e) => setKeepTargetsAfterCast(e.target.checked)}
+          />
+          <label htmlFor="keep-targets-checkbox">Keep targeting after cast</label>
+        </div>
       </div>
+
       <div className="spell-panel__actions">
         <Button
           variant="primary"
           isFullWidth
           onClick={handleCastSpell}
-          disabled={!activeSpellIdentifier}
+          disabled={!activeSpellIdentifier || targetPositions.length === 0}
         >
-          Cast Selected Spell
+          {targetPositions.length > 0 ? `Cast Spell (${targetPositions.length} Targets)` : "Select Targets First"}
         </Button>
       </div>
     </div>

@@ -2,59 +2,71 @@ import { useEffect } from "react";
 import OBR, { buildShape } from "@owlbear-rodeo/sdk";
 import { useStore } from "../store/useStore";
 
+// Module-level state to track reticle animations without querying OBR constantly
+let activeReticleIdentifiers: string[] = [];
 let reticleSpinInterval: ReturnType<typeof setInterval> | null = null;
+
+// Helper function to maintain the spinning animation loop
+function startGlobalReticleAnimation() {
+  if (reticleSpinInterval) return;
+
+  let currentRotation = 0;
+  reticleSpinInterval = setInterval(async () => {
+    if (activeReticleIdentifiers.length === 0) return;
+
+    currentRotation += 2;
+    try {
+      await OBR.scene.local.updateItems(activeReticleIdentifiers, (items) => {
+        for (const item of items) {
+          item.rotation = currentRotation;
+        }
+      });
+    } catch (error) {
+      console.error("Error animating reticles:", error);
+    }
+  }, 40);
+}
 
 export function useObrInit() {
   const setIdentity = useStore((state) => state.setIdentity);
-  const setPrimaryTarget = useStore((state) => state.setPrimaryTarget);
 
   useEffect(() => {
     if (OBR.isAvailable) {
       OBR.onReady(async () => {
-        // 1. Set the user identity
         const playerColor = await OBR.player.getColor();
         const playerRole = await OBR.player.getRole();
         setIdentity(playerColor, playerRole);
 
-        // 2. Register our Custom Toolbar Icon
+        // Start the global animation loop immediately
+        startGlobalReticleAnimation();
+
         OBR.tool.create({
           id: "spellforge-tool",
-          icons: [
-            {
-              // We will need a real SVG path here eventually!
-              icon: "/icon.svg",
-              label: "SpellForge",
-            },
-          ],
-          defaultMode: "spellforge-cast-mode",
+          icons: [{ icon: "/icon.svg", label: "SpellForge" }],
+          defaultMode: "spellforge-add-mode",
         });
 
-        // 3. Register the behavior when our tool is active
+        // Mode 1: ADD TARGETS
         OBR.tool.createMode({
-          id: "spellforge-cast-mode",
+          id: "spellforge-add-mode",
           icons: [
             {
               icon: "/icon.svg",
-              label: "Cast Spells",
+              label: "Add Target",
               filter: { activeTools: ["spellforge-tool"] },
             },
           ],
-          // A: Make the cursor change to a pointer hand when hovering over tokens!
-          cursors: [
-            {
-              cursor: "pointer",
-              filter: {
-                target: [
-                  { key: "layer", value: "CHARACTER", coordinator: "||" },
-                  { key: "layer", value: "MOUNT", coordinator: "||" },
-                  { key: "layer", value: "PROP" },
-                ],
-              },
-            },
-          ],
-          // B: Draw the temporary targeting reticle on click
+          cursors: [{ cursor: "pointer" }],
           async onToolClick(_context, event) {
-            // 1. Determine exactly where to place the reticle
+            try {
+              const currentSelection = await OBR.player.getSelection();
+              if (currentSelection && currentSelection.length > 0) {
+                await OBR.player.deselect(currentSelection);
+              }
+            } catch (error) {
+              console.error("Failed to clear native selection:", error);
+            }
+
             let clickPosition = event.pointerPosition;
             let attachedTokenId = undefined;
 
@@ -62,54 +74,149 @@ export function useObrInit() {
               clickPosition = event.target.position;
               attachedTokenId = event.target.id;
             }
-            setPrimaryTarget(clickPosition);
-            // 2. Clear existing targeting reticles AND stop the old animation loop
-            await OBR.scene.local.deleteItems(["spellforge-target-reticle"]);
-            if (reticleSpinInterval) {
-              clearInterval(reticleSpinInterval);
-              reticleSpinInterval = null;
-            }
 
-            // 3. Create a "SpellForge" aesthetic reticle (A dashed magical ring)
+            const newReticleIdentifier = `spellforge-target-reticle-${Date.now()}`;
+
+            // Save to Zustand
+            useStore.getState().addTargetPosition({
+              targetIdentifier: newReticleIdentifier,
+              x: clickPosition.x,
+              y: clickPosition.y,
+            });
+
+            // Add to animation tracker
+            activeReticleIdentifiers.push(newReticleIdentifier);
+
             const reticleBuilder = buildShape()
               .shapeType("CIRCLE")
-              .width(180) // Slightly larger than the token
+              .width(180)
               .height(180)
               .position(clickPosition)
               .fillOpacity(0)
-              .strokeColor("#9b59b6") // A cool arcane purple!
+              .strokeColor("#9b59b6")
               .strokeWidth(6)
-              .strokeDash([40, 20]) // This creates the broken lines/crosshair look
+              .strokeDash([40, 20])
               .layer("ATTACHMENT")
               .locked(true)
-              .disableHit(true)
-              .id("spellforge-target-reticle");
+              .disableHit(true) // Keeps it from blocking tokens
+              .id(newReticleIdentifier);
 
-            // 4. 'Glue' it to the token if one was clicked
             if (attachedTokenId) {
               reticleBuilder.attachedTo(attachedTokenId);
             }
 
-            const reticle = reticleBuilder.build();
-
-            // 5. Draw it on the map
-            await OBR.scene.local.addItems([reticle]);
-
-            // 6. Start the spinning animation!
-            let currentRotation = 0;
-            reticleSpinInterval = setInterval(async () => {
-              currentRotation += 2; // Rotate 2 degrees every frame
-
-              // We use updateItems to silently rotate the shape without redrawing it
-              await OBR.scene.local.updateItems(["spellforge-target-reticle"], (items) => {
-                for (const item of items) {
-                  item.rotation = currentRotation;
-                }
-              });
-            }, 40); // 40ms equals roughly 25 frames per second
+            await OBR.scene.local.addItems([reticleBuilder.build()]);
           },
         });
-      }); // <-- This closes OBR.onReady
+
+        // Mode 2: REMOVE TARGETS
+        OBR.tool.createMode({
+          id: "spellforge-remove-mode",
+          icons: [
+            {
+              icon: "/icon.svg",
+              label: "Remove Target",
+              filter: { activeTools: ["spellforge-tool"] },
+            },
+          ],
+          cursors: [{ cursor: "crosshair" }],
+          async onToolClick(_context, event) {
+            const currentState = useStore.getState();
+            const clickPosition = event.pointerPosition;
+
+            // Find any target within a 90px radius (our 180px wide reticle)
+            const targetToRemove = currentState.targetPositions.find(
+              (target) => Math.hypot(target.x - clickPosition.x, target.y - clickPosition.y) <= 90
+            );
+
+            if (targetToRemove) {
+              try {
+                await OBR.scene.local.deleteItems([targetToRemove.targetIdentifier]);
+                activeReticleIdentifiers = activeReticleIdentifiers.filter(
+                  (id) => id !== targetToRemove.targetIdentifier
+                );
+                currentState.removeTargetPosition(targetToRemove.targetIdentifier);
+              } catch (error) {
+                console.error("Failed to remove target reticle:", error);
+              }
+            }
+          },
+        });
+
+        // Action 1: CLEAR ALL TARGETS
+        OBR.tool.createAction({
+          id: "spellforge-clear-action",
+          icons: [
+            {
+              icon: "/icon.svg",
+              label: "Clear All Targets",
+              filter: { activeTools: ["spellforge-tool"] },
+            },
+          ],
+          onClick: async () => {
+            if (activeReticleIdentifiers.length > 0) {
+              await OBR.scene.local.deleteItems(activeReticleIdentifiers);
+              activeReticleIdentifiers = [];
+              useStore.getState().clearTargetPositions();
+            }
+          },
+        });
+
+        // Action 2: CAST SPELLS
+        OBR.tool.createAction({
+          id: "spellforge-cast-action",
+          icons: [
+            {
+              icon: "/icon.svg",
+              label: "Cast Selected Spell",
+              filter: { activeTools: ["spellforge-tool"] },
+            },
+          ],
+          onClick: async () => {
+            const currentState = useStore.getState();
+            const {
+              activeSpellIdentifier,
+              targetPositions,
+              availableSpells,
+              configuredColorHex,
+              configuredSize,
+              keepTargetsAfterCast,
+              addParticleEmitters,
+              clearTargetPositions,
+            } = currentState;
+
+            if (!activeSpellIdentifier || targetPositions.length === 0) {
+              await OBR.notification.show("Please select a spell and map target.", "WARNING");
+              return;
+            }
+
+            const spellDefinition = availableSpells.find(
+              (spell) => spell.spellIdentifier === activeSpellIdentifier
+            );
+
+            if (!spellDefinition) return;
+
+            const newEmitters = targetPositions.map((target) => ({
+              emitterIdentifier: `${activeSpellIdentifier}-${target.targetIdentifier}-${Date.now()}`,
+              spellType: activeSpellIdentifier,
+              originCoordinateX: target.x,
+              originCoordinateY: target.y,
+              particleCount: 50,
+              emitterLifeSpan: spellDefinition.durationInSeconds,
+              spellColorHex: configuredColorHex,
+              spellSize: configuredSize,
+            }));
+
+            addParticleEmitters(newEmitters);
+
+            if (!keepTargetsAfterCast) {
+              await OBR.scene.local.deleteItems(activeReticleIdentifiers);
+              activeReticleIdentifiers = [];
+              clearTargetPositions();
+            }
+          },
+        });
+      });
     }
-  }, [setIdentity]); // <-- This closes useEffect
-} // <-- This closes the useObrInit function
+  }, [setIdentity]);
+}

@@ -65,6 +65,50 @@
   border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
+.spell-customization {
+  padding: 10px;
+  background-color: #222;
+  border-radius: 6px;
+  margin: 10px 0;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.spell-customization__header {
+  margin: 0;
+  font-size: 14px;
+}
+
+.spell-customization__row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.spell-customization__row--checkbox {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #ccc;
+  cursor: pointer;
+}
+
+.spell-customization__label {
+  font-size: 12px;
+  min-width: 40px;
+}
+
+.spell-customization__color-picker {
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.spell-customization__slider {
+  flex: 1;
+}
+
 .spell-panel__actions {
   margin-top: 0.5rem;
 }

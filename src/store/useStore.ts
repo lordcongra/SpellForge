@@ -5,33 +5,51 @@ export const useStore = create<RootStore>((set) => ({
   // Identity Slice
   userId: null,
   userRole: null,
-  primaryTargetPosition: null,
   setIdentity: (userId, userRole) => set({ userId, userRole }),
-  setPrimaryTarget: (position) => set({ primaryTargetPosition: position }),
 
-  // Spell Slice - Seeded with MVP primitives
+  // Spell Slice
   availableSpells: [
     {
-      spellIdentifier: "primitive-line-ray",
+      spellIdentifier: "line-ray",
       spellName: "Straight Line Ray",
       spellColorHex: "#ff3366",
       durationInSeconds: 2,
     },
     {
-      spellIdentifier: "primitive-token-burst",
+      spellIdentifier: "token-burst",
       spellName: "Token Shape Burst",
       spellColorHex: "#33ccff",
       durationInSeconds: 3,
     },
   ],
   activeSpellIdentifier: null,
+  targetPositions: [],
+  configuredColorHex: "#3498db",
+  configuredSize: 2,
+  keepTargetsAfterCast: false,
+  
   setActiveSpell: (activeSpellIdentifier) => set({ activeSpellIdentifier }),
+  
+  addTargetPosition: (targetCoordinate) => 
+    set((state) => ({ targetPositions: [...state.targetPositions, targetCoordinate] })),
+    
+  removeTargetPosition: (targetIdentifier) => 
+    set((state) => ({
+      targetPositions: state.targetPositions.filter(
+        (target) => target.targetIdentifier !== targetIdentifier
+      )
+    })),
+    
+  clearTargetPositions: () => set({ targetPositions: [] }),
+  setConfiguredColorHex: (colorHex) => set({ configuredColorHex: colorHex }),
+  setConfiguredSize: (size) => set({ configuredSize: size }),
+  setKeepTargetsAfterCast: (shouldKeep) => set({ keepTargetsAfterCast: shouldKeep }),
 
   // Particle Slice
   activeEmitters: [],
-  addParticleEmitter: (emitterConfiguration) =>
+  addParticleEmitters: (emitterConfigurations) =>
     set((state) => ({
-      activeEmitters: [...state.activeEmitters, emitterConfiguration],
+      activeEmitters: [...state.activeEmitters, ...emitterConfigurations],
     })),
   removeParticleEmitter: (emitterIdentifier) =>
     set((state) => ({
