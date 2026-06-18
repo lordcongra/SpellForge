@@ -4,11 +4,16 @@ export interface IdentityState {
   setIdentity: (userId: string, userRole: "GM" | "PLAYER") => void;
 }
 
+export type BehaviorType = "PROJECTILE" | "BURST" | "WALL";
+export type TargetLogic = "CASTER_ONLY" | "ALL_TARGETS" | "CASTER_TO_TARGETS";
+
 export interface SpellDefinition {
   spellIdentifier: string;
   spellName: string;
   spellColorHex: string;
   durationInSeconds: number;
+  behaviorType: BehaviorType;
+  targetLogic: TargetLogic;
 }
 
 export interface TargetCoordinate {
@@ -35,9 +40,11 @@ export interface SpellState {
 
 export interface ParticleConfiguration {
   emitterIdentifier: string;
-  spellType: string;
+  behaviorType: BehaviorType;
   originCoordinateX: number;
   originCoordinateY: number;
+  destinationCoordinateX?: number;
+  destinationCoordinateY?: number;
   particleCount: number;
   emitterLifeSpan: number;
   spellColorHex: string;

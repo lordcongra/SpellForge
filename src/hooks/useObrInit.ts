@@ -1,12 +1,11 @@
 import { useEffect } from "react";
 import OBR, { buildShape } from "@owlbear-rodeo/sdk";
 import { useStore } from "../store/useStore";
+import type { ParticleConfiguration } from "../store/storeTypes";
 
-// Module-level state to track reticle animations without querying OBR constantly
 let activeReticleIdentifiers: string[] = [];
 let reticleSpinInterval: ReturnType<typeof setInterval> | null = null;
 
-// Helper function to maintain the spinning animation loop
 function startGlobalReticleAnimation() {
   if (reticleSpinInterval) return;
 
@@ -37,7 +36,6 @@ export function useObrInit() {
         const playerRole = await OBR.player.getRole();
         setIdentity(playerColor, playerRole);
 
-        // Start the global animation loop immediately
         startGlobalReticleAnimation();
 
         OBR.tool.create({
@@ -52,7 +50,7 @@ export function useObrInit() {
           icons: [
             {
               icon: "/icon.svg",
-              label: "Add Target",
+              label: "Add Target(s)",
               filter: { activeTools: ["spellforge-tool"] },
             },
           ],
@@ -75,30 +73,32 @@ export function useObrInit() {
               attachedTokenId = event.target.id;
             }
 
+            const currentState = useStore.getState();
+            const isPrimaryTarget = currentState.targetPositions.length === 0;
+            const reticleColor = isPrimaryTarget ? "#9b59b6" : "#00e5ff"; 
             const newReticleIdentifier = `spellforge-target-reticle-${Date.now()}`;
 
-            // Save to Zustand
-            useStore.getState().addTargetPosition({
+            currentState.addTargetPosition({
               targetIdentifier: newReticleIdentifier,
               x: clickPosition.x,
               y: clickPosition.y,
             });
 
-            // Add to animation tracker
             activeReticleIdentifiers.push(newReticleIdentifier);
 
             const reticleBuilder = buildShape()
               .shapeType("CIRCLE")
-              .width(180)
-              .height(180)
+              .width(130)
+              .height(130)
               .position(clickPosition)
               .fillOpacity(0)
-              .strokeColor("#9b59b6")
-              .strokeWidth(6)
-              .strokeDash([40, 20])
+              .strokeColor(reticleColor)
+              .strokeOpacity(0.65)
+              .strokeWidth(5)
+              .strokeDash([30, 15])
               .layer("ATTACHMENT")
               .locked(true)
-              .disableHit(true) // Keeps it from blocking tokens
+              .disableHit(true)
               .id(newReticleIdentifier);
 
             if (attachedTokenId) {
@@ -124,9 +124,8 @@ export function useObrInit() {
             const currentState = useStore.getState();
             const clickPosition = event.pointerPosition;
 
-            // Find any target within a 90px radius (our 180px wide reticle)
             const targetToRemove = currentState.targetPositions.find(
-              (target) => Math.hypot(target.x - clickPosition.x, target.y - clickPosition.y) <= 90
+              (target) => Math.hypot(target.x - clickPosition.x, target.y - clickPosition.y) <= 65
             );
 
             if (targetToRemove) {
@@ -137,7 +136,7 @@ export function useObrInit() {
                 );
                 currentState.removeTargetPosition(targetToRemove.targetIdentifier);
               } catch (error) {
-                console.error("Failed to remove target reticle:", error);
+               console.error("Failed to remove target reticle:", error);
               }
             }
           },
@@ -196,16 +195,62 @@ export function useObrInit() {
 
             if (!spellDefinition) return;
 
-            const newEmitters = targetPositions.map((target) => ({
-              emitterIdentifier: `${activeSpellIdentifier}-${target.targetIdentifier}-${Date.now()}`,
-              spellType: activeSpellIdentifier,
-              originCoordinateX: target.x,
-              originCoordinateY: target.y,
-              particleCount: 50,
-              emitterLifeSpan: spellDefinition.durationInSeconds,
-              spellColorHex: configuredColorHex,
-              spellSize: configuredSize,
-            }));
+            let newEmitters: ParticleConfiguration[] = [];
+            const casterOrigin = targetPositions[0];
+
+            // Map emitters based on the spell's TargetLogic
+            if (spellDefinition.targetLogic === "CASTER_ONLY") {
+              newEmitters.push({
+                emitterIdentifier: `${activeSpellIdentifier}-${casterOrigin.targetIdentifier}-${Date.now()}`,
+                behaviorType: spellDefinition.behaviorType,
+                originCoordinateX: casterOrigin.x,
+                originCoordinateY: casterOrigin.y,
+                particleCount: 50,
+                emitterLifeSpan: spellDefinition.durationInSeconds,
+                spellColorHex: configuredColorHex,
+                spellSize: configuredSize,
+              });
+            } else if (spellDefinition.targetLogic === "ALL_TARGETS") {
+              newEmitters = targetPositions.map((target) => ({
+                emitterIdentifier: `${activeSpellIdentifier}-${target.targetIdentifier}-${Date.now()}`,
+                behaviorType: spellDefinition.behaviorType,
+                originCoordinateX: target.x,
+                originCoordinateY: target.y,
+                particleCount: 50,
+                emitterLifeSpan: spellDefinition.durationInSeconds,
+                spellColorHex: configuredColorHex,
+                spellSize: configuredSize,
+              }));
+            } else if (spellDefinition.targetLogic === "CASTER_TO_TARGETS") {
+              const destinations = targetPositions.slice(1);
+              
+              if (destinations.length === 0) {
+                // Fallback if they only placed one token
+                newEmitters.push({
+                  emitterIdentifier: `${activeSpellIdentifier}-${casterOrigin.targetIdentifier}-${Date.now()}`,
+                  behaviorType: spellDefinition.behaviorType,
+                  originCoordinateX: casterOrigin.x,
+                  originCoordinateY: casterOrigin.y,
+                  particleCount: 50,
+                  emitterLifeSpan: spellDefinition.durationInSeconds,
+                  spellColorHex: configuredColorHex,
+                  spellSize: configuredSize,
+                });
+              } else {
+                newEmitters = destinations.map((destinationTarget) => ({
+                  emitterIdentifier: `${activeSpellIdentifier}-${destinationTarget.targetIdentifier}-${Date.now()}`,
+                  behaviorType: spellDefinition.behaviorType,
+                  originCoordinateX: casterOrigin.x,
+                  originCoordinateY: casterOrigin.y,
+                  destinationCoordinateX: destinationTarget.x,
+                  destinationCoordinateY: destinationTarget.y,
+                  particleCount: 50,
+                  emitterLifeSpan: spellDefinition.durationInSeconds,
+                  spellColorHex: configuredColorHex,
+                  spellSize: configuredSize,
+                }));
+              }
+            }
 
             addParticleEmitters(newEmitters);
 

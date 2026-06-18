@@ -1,5 +1,6 @@
 import { useStore } from "../../store/useStore";
 import { Button } from "../Button/Button";
+import type { ParticleConfiguration } from "../../store/storeTypes";
 import "./SpellPanel.css";
 import OBR from "@owlbear-rodeo/sdk";
 
@@ -36,21 +37,64 @@ export function SpellPanel() {
 
       if (!spellDefinition) return;
 
-      const newEmitters = targetPositions.map((target) => ({
-        emitterIdentifier: `${activeSpellIdentifier}-${target.targetIdentifier}-${Date.now()}`,
-        spellType: activeSpellIdentifier,
-        originCoordinateX: target.x,
-        originCoordinateY: target.y,
-        particleCount: 50,
-        emitterLifeSpan: spellDefinition.durationInSeconds,
-        spellColorHex: configuredColorHex,
-        spellSize: configuredSize,
-      }));
+      const casterOrigin = targetPositions[0];
+      let newEmitters: ParticleConfiguration[] = [];
+
+      if (spellDefinition.targetLogic === "CASTER_ONLY") {
+        newEmitters.push({
+          emitterIdentifier: `${activeSpellIdentifier}-${casterOrigin.targetIdentifier}-${Date.now()}`,
+          behaviorType: spellDefinition.behaviorType,
+          originCoordinateX: casterOrigin.x,
+          originCoordinateY: casterOrigin.y,
+          particleCount: 50,
+          emitterLifeSpan: spellDefinition.durationInSeconds,
+          spellColorHex: configuredColorHex,
+          spellSize: configuredSize,
+        });
+      } else if (spellDefinition.targetLogic === "ALL_TARGETS") {
+        newEmitters = targetPositions.map((target) => ({
+          emitterIdentifier: `${activeSpellIdentifier}-${target.targetIdentifier}-${Date.now()}`,
+          behaviorType: spellDefinition.behaviorType,
+          originCoordinateX: target.x,
+          originCoordinateY: target.y,
+          particleCount: 50,
+          emitterLifeSpan: spellDefinition.durationInSeconds,
+          spellColorHex: configuredColorHex,
+          spellSize: configuredSize,
+        }));
+      } else if (spellDefinition.targetLogic === "CASTER_TO_TARGETS") {
+        const destinations = targetPositions.slice(1);
+        
+        if (destinations.length === 0) {
+          newEmitters.push({
+            emitterIdentifier: `${activeSpellIdentifier}-${casterOrigin.targetIdentifier}-${Date.now()}`,
+            behaviorType: spellDefinition.behaviorType,
+            originCoordinateX: casterOrigin.x,
+            originCoordinateY: casterOrigin.y,
+            particleCount: 50,
+            emitterLifeSpan: spellDefinition.durationInSeconds,
+            spellColorHex: configuredColorHex,
+            spellSize: configuredSize,
+          });
+        } else {
+          newEmitters = destinations.map((destinationTarget) => ({
+            emitterIdentifier: `${activeSpellIdentifier}-${destinationTarget.targetIdentifier}-${Date.now()}`,
+            behaviorType: spellDefinition.behaviorType,
+            originCoordinateX: casterOrigin.x,
+            originCoordinateY: casterOrigin.y,
+            destinationCoordinateX: destinationTarget.x,
+            destinationCoordinateY: destinationTarget.y,
+            particleCount: 50,
+            emitterLifeSpan: spellDefinition.durationInSeconds,
+            spellColorHex: configuredColorHex,
+            spellSize: configuredSize,
+          }));
+        }
+      }
 
       addParticleEmitters(newEmitters);
 
       if (!keepTargetsAfterCast) {
-        // Extract all current target IDs to delete their visuals from the map
         const reticleIdentifiers = targetPositions.map((t) => t.targetIdentifier);
         await OBR.scene.local.deleteItems(reticleIdentifiers);
         clearTargetPositions();
@@ -134,7 +178,7 @@ export function SpellPanel() {
           onClick={handleCastSpell}
           disabled={!activeSpellIdentifier || targetPositions.length === 0}
         >
-          {targetPositions.length > 0 ? `Cast Spell (${targetPositions.length} Targets)` : "Select Targets First"}
+          {targetPositions.length > 0 ? `Cast Spell (${targetPositions.length > 1 ? targetPositions.length - 1 : 1} Targets)` : "Select Targets First"}
         </Button>
       </div>
     </div>

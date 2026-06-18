@@ -23,16 +23,44 @@ export function SpellEngine() {
 
       const pixelSize = emitter.spellSize * 150;
 
-      if (emitter.spellType === "line-ray") {
-        spellShapeBuilder = spellShapeBuilder
-          .shapeType("RECTANGLE")
-          .position({ x: emitter.originCoordinateX, y: emitter.originCoordinateY - 20 })
-          .width(pixelSize)
-          .height(40);
+      // The engine now checks the behavioral blueprint!
+      if (emitter.behaviorType === "PROJECTILE") {
+        
+        if (emitter.destinationCoordinateX !== undefined && emitter.destinationCoordinateY !== undefined) {
+          const startX = emitter.originCoordinateX;
+          const startY = emitter.originCoordinateY;
+          const endX = emitter.destinationCoordinateX;
+          const endY = emitter.destinationCoordinateY;
+
+          const distance = Math.hypot(endX - startX, endY - startY);
+          const midX = (startX + endX) / 2;
+          const midY = (startY + endY) / 2;
+
+          const angleInRadians = Math.atan2(endY - startY, endX - startX);
+          const angleInDegrees = angleInRadians * (180 / Math.PI);
+
+          spellShapeBuilder = spellShapeBuilder
+            .shapeType("RECTANGLE")
+            .position({ x: midX, y: midY })
+            .width(distance) 
+            .height(40) 
+            .rotation(angleInDegrees);
+
+        } else {
+          spellShapeBuilder = spellShapeBuilder
+            .shapeType("RECTANGLE")
+            .position({ x: emitter.originCoordinateX, y: emitter.originCoordinateY })
+            .width(pixelSize)
+            .height(40);
+        }
+
       } else {
+        const burstX = emitter.destinationCoordinateX ?? emitter.originCoordinateX;
+        const burstY = emitter.destinationCoordinateY ?? emitter.originCoordinateY;
+
         spellShapeBuilder = spellShapeBuilder
           .shapeType("CIRCLE")
-          .position({ x: emitter.originCoordinateX, y: emitter.originCoordinateY })
+          .position({ x: burstX, y: burstY })
           .width(pixelSize)
           .height(pixelSize);
       }
