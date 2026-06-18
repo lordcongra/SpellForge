@@ -24,8 +24,7 @@ export interface SpellDefinition {
   spellIdentifier: string;
   spellName: string;
   spellColorHex: string;
-  durationInMs: number; // Switched to milliseconds
-
+  durationInMs: number;
   shapePrimitive: ShapePrimitive;
   animationBehavior: AnimationBehavior;
   targetLogic: TargetLogic;
@@ -45,8 +44,9 @@ export interface SpellState {
   targetPositions: TargetCoordinate[];
   configuredColorHex: string;
   configuredSize: number;
-  configuredDurationMs: number; // Switched to milliseconds
+  configuredDurationMs: number;
   keepTargetsAfterCast: boolean;
+
   setActiveSpell: (spellIdentifier: string) => void;
   addTargetPosition: (target: TargetCoordinate) => void;
   removeTargetPosition: (targetIdentifier: string) => void;
@@ -55,23 +55,24 @@ export interface SpellState {
   setConfiguredSize: (size: number) => void;
   setConfiguredDurationMs: (durationMs: number) => void;
   setKeepTargetsAfterCast: (shouldKeep: boolean) => void;
+
+  // New Spellbook Management Methods
+  saveSpell: (spell: SpellDefinition) => void;
+  deleteSpell: (spellIdentifier: string) => void;
+  importSpells: (spells: SpellDefinition[]) => void;
 }
 
 export interface ParticleConfiguration {
   emitterIdentifier: string;
-
   shapePrimitive: ShapePrimitive;
   animationBehavior: AnimationBehavior;
-
   originCoordinateX: number;
   originCoordinateY: number;
   destinationCoordinateX?: number;
   destinationCoordinateY?: number;
-
   particleCount: number;
-  emitterLifeSpan: number; // This is now evaluated as milliseconds by the engine
+  emitterLifeSpan: number;
   travelTimeInMs?: number;
-
   spellColorHex: string;
   spellSize: number;
 }

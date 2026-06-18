@@ -5,12 +5,19 @@
   margin-top: 1rem;
 }
 
+.spell-panel__management-bar {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  border-bottom: 1px solid #444;
+  padding-bottom: 10px;
+}
+
 .spell-panel__header {
   font-size: 1.1rem;
   font-weight: 600;
   margin: 0;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid #444;
 }
 
 .spell-panel__list {
@@ -56,6 +63,24 @@
   font-size: 0.8rem;
   color: #aaa;
   margin: 0;
+}
+
+.text-button {
+  background: none;
+  border: none;
+  color: #aaa;
+  font-size: 11px;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.text-button:hover {
+  color: #fff;
+}
+
+.text-button--danger:hover {
+  color: #ef4444;
 }
 
 .spell-card__color-indicator {
@@ -123,7 +148,6 @@
   outline: 1px solid #a855f7;
 }
 
-/* Hides the up/down arrows in number inputs */
 .spell-customization__number-input::-webkit-outer-spin-button,
 .spell-customization__number-input::-webkit-inner-spin-button {
   -webkit-appearance: none;

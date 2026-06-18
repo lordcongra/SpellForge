@@ -67,6 +67,39 @@ export const useStore = create<RootStore>()(
       setConfiguredDurationMs: (durationMs) => set({ configuredDurationMs: durationMs }),
       setKeepTargetsAfterCast: (shouldKeep) => set({ keepTargetsAfterCast: shouldKeep }),
 
+      // Spellbook Management
+      saveSpell: (newSpell) =>
+        set((state) => {
+          const exists = state.availableSpells.some(
+            (s) => s.spellIdentifier === newSpell.spellIdentifier
+          );
+          if (exists) {
+            return {
+              availableSpells: state.availableSpells.map((s) =>
+                s.spellIdentifier === newSpell.spellIdentifier ? newSpell : s
+              ),
+            };
+          }
+          return { availableSpells: [...state.availableSpells, newSpell] };
+        }),
+
+      deleteSpell: (spellIdentifier) =>
+        set((state) => ({
+          availableSpells: state.availableSpells.filter(
+            (s) => s.spellIdentifier !== spellIdentifier
+          ),
+          activeSpellIdentifier:
+            state.activeSpellIdentifier === spellIdentifier ? null : state.activeSpellIdentifier,
+        })),
+
+      importSpells: (spells) =>
+        set((state) => {
+          // Merge imported spells, preventing exact ID duplicates
+          const currentIds = new Set(state.availableSpells.map((s) => s.spellIdentifier));
+          const newSpells = spells.filter((s) => !currentIds.has(s.spellIdentifier));
+          return { availableSpells: [...state.availableSpells, ...newSpells] };
+        }),
+
       // Particle Slice
       activeEmitters: [],
       addParticleEmitters: (emitterConfigurations) =>
@@ -86,7 +119,6 @@ export const useStore = create<RootStore>()(
     }),
     {
       name: "spellforge-storage",
-      // Only save these specific fields to localStorage
       partialize: (state) => ({
         availableSpells: state.availableSpells,
         configuredColorHex: state.configuredColorHex,

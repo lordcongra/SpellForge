@@ -1,0 +1,70 @@
+.spell-editor {
+  padding: 20px;
+  background-color: #242424;
+  color: white;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.spell-editor h2 {
+  margin: 0;
+  border-bottom: 1px solid #444;
+  padding-bottom: 10px;
+}
+
+.spell-editor__form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.spell-editor__form label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #ccc;
+}
+
+.spell-editor__form input[type="text"],
+.spell-editor__form input[type="number"],
+.spell-editor__form select {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #555;
+  background-color: #1a1a1a;
+  color: white;
+  font-size: 14px;
+}
+
+.spell-editor__form input:focus,
+.spell-editor__form select:focus {
+  outline: 1px solid #a855f7;
+  border-color: #a855f7;
+}
+
+.spell-editor__form input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.spell-editor__row {
+  display: flex;
+  gap: 15px;
+}
+
+.spell-editor__row label {
+  flex: 1;
+}
+
+.spell-editor__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+  border-top: 1px solid #444;
+  padding-top: 20px;
+}

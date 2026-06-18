@@ -1,7 +1,17 @@
 import { useEffect } from "react";
 import OBR, { buildShape } from "@owlbear-rodeo/sdk";
 import { useStore } from "../store/useStore";
-import type { ParticleConfiguration } from "../store/storeTypes";
+import type { ParticleConfiguration, SpellDefinition } from "../store/storeTypes";
+
+// Strict IDs to prevent OBR SDK namespace mismatches
+const TOOL_ID = "spellforge/tool";
+const ADD_MODE_ID = "spellforge/add-mode";
+const REMOVE_MODE_ID = "spellforge/remove-mode";
+const CLEAR_ACTION_ID = "spellforge/clear-action";
+const CAST_ACTION_ID = "spellforge/cast-action";
+
+// Explicit absolute path matching your Vite base to prevent 404 image errors
+const ICON_PATH = "/SpellForge/icon.svg";
 
 let activeReticleIdentifiers: string[] = [];
 let reticleSpinInterval: ReturnType<typeof setInterval> | null = null;
@@ -28,6 +38,7 @@ function startGlobalReticleAnimation() {
 
 export function useObrInit() {
   const setIdentity = useStore((state) => state.setIdentity);
+  const saveSpell = useStore((state) => state.saveSpell);
 
   useEffect(() => {
     if (OBR.isAvailable) {
@@ -36,22 +47,41 @@ export function useObrInit() {
         const playerRole = await OBR.player.getRole();
         setIdentity(playerColor, playerRole);
 
+        // Clean up orphaned temporary items from previous ungraceful exits/refreshes
+        try {
+          const orphanedItems = await OBR.scene.items.getItems(
+            (item) => item.metadata["spellforge/isTemporary"] === true
+          );
+          if (orphanedItems.length > 0) {
+            await OBR.scene.items.deleteItems(orphanedItems.map((i) => i.id));
+          }
+        } catch (cleanupError) {
+          console.error("Failed to clean up orphaned items on init:", cleanupError);
+        }
+
         startGlobalReticleAnimation();
 
+        // Listen for the Modal saving a spell so we can update the main panel instantly
+        OBR.broadcast.onMessage("SPELLFORGE_SPELL_SAVED", (event) => {
+          const newSpell = event.data as SpellDefinition;
+          saveSpell(newSpell);
+        });
+
+        // Register the main tool
         OBR.tool.create({
-          id: "spellforge-tool",
-          icons: [{ icon: "/icon.svg", label: "SpellForge" }],
-          defaultMode: "spellforge-add-mode",
+          id: TOOL_ID,
+          icons: [{ icon: ICON_PATH, label: "SpellForge" }],
+          defaultMode: ADD_MODE_ID,
         });
 
         // Mode 1: ADD TARGETS
         OBR.tool.createMode({
-          id: "spellforge-add-mode",
+          id: ADD_MODE_ID,
           icons: [
             {
-              icon: "/icon.svg",
+              icon: ICON_PATH,
               label: "Add Target(s)",
-              filter: { activeTools: ["spellforge-tool"] },
+              filter: { activeTools: [TOOL_ID] }, // Strictly mapped to TOOL_ID
             },
           ],
           cursors: [{ cursor: "pointer" }],
@@ -99,7 +129,8 @@ export function useObrInit() {
               .layer("ATTACHMENT")
               .locked(true)
               .disableHit(true)
-              .id(newReticleIdentifier);
+              .id(newReticleIdentifier)
+              .metadata({ "spellforge/isTemporary": true }); // Stamp it for garbage collection
 
             if (attachedTokenId) {
               reticleBuilder.attachedTo(attachedTokenId);
@@ -111,12 +142,12 @@ export function useObrInit() {
 
         // Mode 2: REMOVE TARGETS
         OBR.tool.createMode({
-          id: "spellforge-remove-mode",
+          id: REMOVE_MODE_ID,
           icons: [
             {
-              icon: "/icon.svg",
+              icon: ICON_PATH,
               label: "Remove Target",
-              filter: { activeTools: ["spellforge-tool"] },
+              filter: { activeTools: [TOOL_ID] },
             },
           ],
           cursors: [{ cursor: "crosshair" }],
@@ -144,12 +175,12 @@ export function useObrInit() {
 
         // Action 1: CLEAR ALL TARGETS
         OBR.tool.createAction({
-          id: "spellforge-clear-action",
+          id: CLEAR_ACTION_ID,
           icons: [
             {
-              icon: "/icon.svg",
+              icon: ICON_PATH,
               label: "Clear All Targets",
-              filter: { activeTools: ["spellforge-tool"] },
+              filter: { activeTools: [TOOL_ID] },
             },
           ],
           onClick: async () => {
@@ -163,12 +194,12 @@ export function useObrInit() {
 
         // Action 2: CAST SPELLS
         OBR.tool.createAction({
-          id: "spellforge-cast-action",
+          id: CAST_ACTION_ID,
           icons: [
             {
-              icon: "/icon.svg",
+              icon: ICON_PATH,
               label: "Cast Selected Spell",
-              filter: { activeTools: ["spellforge-tool"] },
+              filter: { activeTools: [TOOL_ID] },
             },
           ],
           onClick: async () => {
@@ -266,5 +297,5 @@ export function useObrInit() {
         });
       });
     }
-  }, [setIdentity]);
+  }, [setIdentity, saveSpell]);
 }

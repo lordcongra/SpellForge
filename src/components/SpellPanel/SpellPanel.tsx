@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { useStore } from "../../store/useStore";
 import { Button } from "../Button/Button";
 import type { ParticleConfiguration } from "../../store/storeTypes";
@@ -20,23 +21,69 @@ export function SpellPanel() {
   const setKeepTargetsAfterCast = useStore((state) => state.setKeepTargetsAfterCast);
   const addParticleEmitters = useStore((state) => state.addParticleEmitters);
   const clearTargetPositions = useStore((state) => state.clearTargetPositions);
+  const deleteSpell = useStore((state) => state.deleteSpell);
+  const importSpells = useStore((state) => state.importSpells);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-activate the OBR tool when a user selects a spell in the sidebar
+  const handleSpellClick = async (spellId: string) => {
+    setActiveSpell(spellId);
+    if (OBR.isAvailable) {
+      try {
+        await OBR.tool.activateTool("spellforge/tool"); // Updated ID here!
+      } catch (error) {
+        console.warn("Failed to activate SpellForge tool:", error);
+      }
+    }
+  };
+
+  const handleOpenEditor = async (spellId?: string) => {
+    // Assuming your Vite base URL is /SpellForge/
+    const url = spellId ? `/SpellForge/?view=editor&spellId=${spellId}` : `/SpellForge/?view=editor`;
+    await OBR.modal.open({
+      id: "spellforge-editor",
+      url: url,
+      height: 650,
+      width: 500,
+    });
+  };
+
+  const handleExportJSON = () => {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(availableSpells, null, 2));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", "spellforge-spells.json");
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+  };
+
+  const handleImportJSON = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const importedSpells = JSON.parse(e.target?.result as string);
+        if (Array.isArray(importedSpells)) {
+          importSpells(importedSpells);
+          OBR.notification.show("Spells imported successfully!", "SUCCESS");
+        }
+      } catch (err) {
+        console.error("Invalid JSON file:", err);
+        OBR.notification.show("Failed to import spells. Invalid JSON.", "ERROR");
+      }
+    };
+    reader.readAsText(file);
+  };
 
   const handleCastSpell = async () => {
-    if (!activeSpellIdentifier) {
-      console.warn("No spell selected!");
-      return;
-    }
-
-    if (targetPositions.length === 0) {
-      console.warn("No targets selected!");
-      return;
-    }
+    if (!activeSpellIdentifier || targetPositions.length === 0) return;
 
     try {
-      const spellDefinition = availableSpells.find(
-        (spell) => spell.spellIdentifier === activeSpellIdentifier
-      );
-
+      const spellDefinition = availableSpells.find((s) => s.spellIdentifier === activeSpellIdentifier);
       if (!spellDefinition) return;
 
       const casterOrigin = targetPositions[0];
@@ -68,7 +115,6 @@ export function SpellPanel() {
         }));
       } else if (spellDefinition.targetLogic === "CASTER_TO_TARGETS_SIMULTANEOUS") {
         const destinations = targetPositions.slice(1);
-
         if (destinations.length === 0) {
           newEmitters.push({
             emitterIdentifier: `${activeSpellIdentifier}-${casterOrigin.targetIdentifier}-${Date.now()}`,
@@ -112,7 +158,15 @@ export function SpellPanel() {
 
   return (
     <div className="spell-panel">
-      <h2 className="spell-panel__header">Available Forms</h2>
+      
+      <div className="spell-panel__management-bar">
+        <Button variant="secondary" onClick={() => handleOpenEditor()} style={{ padding: "4px 8px", fontSize: "12px" }}>+ New</Button>
+        <Button variant="secondary" onClick={handleExportJSON} style={{ padding: "4px 8px", fontSize: "12px" }}>Export</Button>
+        <Button variant="secondary" onClick={() => fileInputRef.current?.click()} style={{ padding: "4px 8px", fontSize: "12px" }}>Import</Button>
+        <input type="file" ref={fileInputRef} onChange={handleImportJSON} accept=".json" style={{ display: "none" }} />
+      </div>
+
+      <h2 className="spell-panel__header">Spellbook</h2>
 
       <div className="spell-panel__list">
         {availableSpells.map((spell) => {
@@ -122,13 +176,16 @@ export function SpellPanel() {
             <div
               key={spell.spellIdentifier}
               className={`spell-card ${isActive ? "spell-card--active" : ""}`}
-              onClick={() => setActiveSpell(spell.spellIdentifier)}
+              onClick={() => handleSpellClick(spell.spellIdentifier)}
               role="button"
               tabIndex={0}
             >
               <div className="spell-card__info">
                 <p className="spell-card__title">{spell.spellName}</p>
-                <p className="spell-card__meta">Default Duration: {spell.durationInMs / 1000}s</p>
+                <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
+                  <button className="text-button" onClick={(e) => { e.stopPropagation(); handleOpenEditor(spell.spellIdentifier); }}>Edit</button>
+                  <button className="text-button text-button--danger" onClick={(e) => { e.stopPropagation(); deleteSpell(spell.spellIdentifier); }}>Delete</button>
+                </div>
               </div>
               <div
                 className="spell-card__color-indicator"
@@ -200,7 +257,7 @@ export function SpellPanel() {
             />
           </div>
         </div>
-
+        
         <div className="spell-customization__row spell-customization__row--checkbox">
           <input
             type="checkbox"
@@ -219,9 +276,7 @@ export function SpellPanel() {
           onClick={handleCastSpell}
           disabled={!activeSpellIdentifier || targetPositions.length === 0}
         >
-          {targetPositions.length > 0
-            ? `Cast Spell (${targetPositions.length > 1 ? targetPositions.length - 1 : 1} Targets)`
-            : "Select Targets First"}
+          {targetPositions.length > 0 ? `Cast Spell (${targetPositions.length > 1 ? targetPositions.length - 1 : 1} Targets)` : "Select Targets First"}
         </Button>
       </div>
     </div>
