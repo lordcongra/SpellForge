@@ -3,6 +3,7 @@ import { useStore } from "./store/useStore";
 import { SpellPanel } from "./components/SpellPanel/SpellPanel";
 import { SpellEngine } from "./components/Engine/SpellEngine";
 import { SpellEditor } from "./components/SpellEditor/SpellEditor";
+import { ParticleOverlay } from "./components/Engine/ParticleOverlay";
 import "./App.css";
 
 export default function App() {
@@ -22,6 +23,7 @@ export default function App() {
 
   return (
     <div className="app-container">
+      <ParticleOverlay />
       <SpellEngine />
 
       <h1>SpellForge</h1>

@@ -25,6 +25,7 @@ export interface SpellDefinition {
   spellName: string;
   spellColorHex: string;
   secondaryColorHex?: string;
+  particleCount: number;
   durationInMs: number;
   shapePrimitive: ShapePrimitive;
   animationBehavior: AnimationBehavior;

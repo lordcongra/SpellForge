@@ -23,6 +23,7 @@ export function SpellEditor({ editSpellId }: SpellEditorProps) {
     spellName: "New Spell",
     spellColorHex: "#ffffff",
     secondaryColorHex: "",
+    particleCount: 50,
     durationInMs: 2000,
     shapePrimitive: "CIRCLE",
     animationBehavior: "INSTANT",
@@ -38,7 +39,6 @@ export function SpellEditor({ editSpellId }: SpellEditorProps) {
 
   const handleSave = async () => {
     saveSpell(formData);
-    // Broadcast to the main window so it updates immediately!
     await OBR.broadcast.sendMessage("SPELLFORGE_SPELL_SAVED", formData, { destination: "LOCAL" });
     await OBR.modal.close("spellforge-editor");
   };
@@ -67,48 +67,64 @@ export function SpellEditor({ editSpellId }: SpellEditorProps) {
             type="text"
             value={formData.spellIdentifier}
             onChange={(e) => setFormData({ ...formData, spellIdentifier: e.target.value })}
-            disabled={!!editSpellId} // Cannot change ID once created
+            disabled={!!editSpellId}
           />
         </label>
 
         <div className="spell-editor__row">
           <label>
             Primary Color
-            <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+            <div className="spell-editor__row" style={{ alignItems: "center", gap: "8px" }}>
               <input
                 type="color"
                 value={formData.spellColorHex}
                 onChange={(e) => setFormData({ ...formData, spellColorHex: e.target.value })}
-                style={{ cursor: "pointer", height: "34px", width: "40px", padding: "0", border: "none", background: "none" }}
+                className="spell-customization__color-picker"
               />
               <input
                 type="text"
                 value={formData.spellColorHex}
                 onChange={(e) => setFormData({ ...formData, spellColorHex: e.target.value })}
                 placeholder="#ffffff"
-                style={{ flex: 1 }}
               />
             </div>
           </label>
           <label>
-            Secondary Color (Optional)
-            <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+            Secondary Color
+            <div className="spell-editor__row" style={{ alignItems: "center", gap: "8px" }}>
               <input
                 type="color"
                 value={formData.secondaryColorHex || "#000000"}
                 onChange={(e) => setFormData({ ...formData, secondaryColorHex: e.target.value })}
-                style={{ cursor: "pointer", height: "34px", width: "40px", padding: "0", border: "none", background: "none" }}
+                className="spell-customization__color-picker"
               />
               <input
                 type="text"
                 value={formData.secondaryColorHex || ""}
                 onChange={(e) => setFormData({ ...formData, secondaryColorHex: e.target.value })}
-                placeholder="None"
-                style={{ flex: 1 }}
+                placeholder="Optional"
               />
             </div>
           </label>
         </div>
+
+        <label>
+          <div className="spell-editor__row" style={{ justifyContent: "space-between" }}>
+            <span>Particle Density</span>
+            <span style={{ color: "#a855f7", fontWeight: "bold" }}>{formData.particleCount} Sparks</span>
+          </div>
+          <span style={{ fontSize: "11px", color: "#888", fontWeight: "normal" }}>
+            How many sparks fly when the spell goes off. Higher numbers look flashier but demand more processing power.
+          </span>
+          <input
+            type="range"
+            min="10"
+            max="300"
+            step="10"
+            value={formData.particleCount}
+            onChange={(e) => setFormData({ ...formData, particleCount: Number(e.target.value) })}
+          />
+        </label>
 
         <label>
           Duration (ms)

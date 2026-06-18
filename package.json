@@ -3,15 +3,16 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
- "scripts": {
-  "dev": "vite",
-  "build": "tsc -b && vite build",
-  "lint": "eslint .",
-  "preview": "vite preview",
-  "format": "prettier --write \"src/**/*.{ts,tsx,css,json}\""
-},
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "format": "prettier --write \"src/**/*.{ts,tsx,css,json}\""
+  },
   "dependencies": {
     "@owlbear-rodeo/sdk": "^3.1.0",
+    "@tsparticles/engine": "^4.2.0",
     "@tsparticles/react": "^4.2.0",
     "@tsparticles/slim": "^4.2.0",
     "lodash": "^4.18.1",

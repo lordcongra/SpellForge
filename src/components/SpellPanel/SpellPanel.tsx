@@ -26,12 +26,11 @@ export function SpellPanel() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-activate the OBR tool when a user selects a spell in the sidebar
   const handleSpellClick = async (spellId: string) => {
     setActiveSpell(spellId);
     if (OBR.isAvailable) {
       try {
-        await OBR.tool.activateTool("spellforge/tool"); // Updated ID here!
+        await OBR.tool.activateTool("spellforge/tool");
       } catch (error) {
         console.warn("Failed to activate SpellForge tool:", error);
       }
@@ -39,14 +38,8 @@ export function SpellPanel() {
   };
 
   const handleOpenEditor = async (spellId?: string) => {
-    // Assuming your Vite base URL is /SpellForge/
     const url = spellId ? `/SpellForge/?view=editor&spellId=${spellId}` : `/SpellForge/?view=editor`;
-    await OBR.modal.open({
-      id: "spellforge-editor",
-      url: url,
-      height: 650,
-      width: 500,
-    });
+    await OBR.modal.open({ id: "spellforge-editor", url: url, height: 650, width: 500 });
   };
 
   const handleExportJSON = () => {
@@ -73,14 +66,19 @@ export function SpellPanel() {
         }
       } catch (err) {
         console.error("Invalid JSON file:", err);
-        OBR.notification.show("Failed to import spells. Invalid JSON.", "ERROR");
       }
     };
     reader.readAsText(file);
   };
 
   const handleCastSpell = async () => {
-    if (!activeSpellIdentifier || targetPositions.length === 0) return;
+    // DIAGNOSTIC ALERT 1: Proves the button actually received your click
+    window.alert(`SpellForge Debug: Cast clicked! You have ${targetPositions.length} targets.`);
+    
+    if (!activeSpellIdentifier || targetPositions.length === 0) {
+      window.alert("SpellForge Debug: Cast aborted. No spell active or 0 targets.");
+      return;
+    }
 
     try {
       const spellDefinition = availableSpells.find((s) => s.spellIdentifier === activeSpellIdentifier);
@@ -89,62 +87,22 @@ export function SpellPanel() {
       const casterOrigin = targetPositions[0];
       let newEmitters: ParticleConfiguration[] = [];
 
-      if (spellDefinition.targetLogic === "CASTER_ONLY") {
-        newEmitters.push({
-          emitterIdentifier: `${activeSpellIdentifier}-${casterOrigin.targetIdentifier}-${Date.now()}`,
-          shapePrimitive: spellDefinition.shapePrimitive,
-          animationBehavior: spellDefinition.animationBehavior,
-          originCoordinateX: casterOrigin.x,
-          originCoordinateY: casterOrigin.y,
-          particleCount: 50,
-          emitterLifeSpan: configuredDurationMs,
-          spellColorHex: configuredColorHex,
-          spellSize: configuredSize,
-        });
-      } else if (spellDefinition.targetLogic === "ALL_SIMULTANEOUS") {
-        newEmitters = targetPositions.map((target) => ({
-          emitterIdentifier: `${activeSpellIdentifier}-${target.targetIdentifier}-${Date.now()}`,
-          shapePrimitive: spellDefinition.shapePrimitive,
-          animationBehavior: spellDefinition.animationBehavior,
-          originCoordinateX: target.x,
-          originCoordinateY: target.y,
-          particleCount: 50,
-          emitterLifeSpan: configuredDurationMs,
-          spellColorHex: configuredColorHex,
-          spellSize: configuredSize,
-        }));
-      } else if (spellDefinition.targetLogic === "CASTER_TO_TARGETS_SIMULTANEOUS") {
-        const destinations = targetPositions.slice(1);
-        if (destinations.length === 0) {
-          newEmitters.push({
-            emitterIdentifier: `${activeSpellIdentifier}-${casterOrigin.targetIdentifier}-${Date.now()}`,
-            shapePrimitive: spellDefinition.shapePrimitive,
-            animationBehavior: spellDefinition.animationBehavior,
-            originCoordinateX: casterOrigin.x,
-            originCoordinateY: casterOrigin.y,
-            particleCount: 50,
-            emitterLifeSpan: configuredDurationMs,
-            spellColorHex: configuredColorHex,
-            spellSize: configuredSize,
-          });
-        } else {
-          newEmitters = destinations.map((destinationTarget) => ({
-            emitterIdentifier: `${activeSpellIdentifier}-${destinationTarget.targetIdentifier}-${Date.now()}`,
-            shapePrimitive: spellDefinition.shapePrimitive,
-            animationBehavior: spellDefinition.animationBehavior,
-            originCoordinateX: casterOrigin.x,
-            originCoordinateY: casterOrigin.y,
-            destinationCoordinateX: destinationTarget.x,
-            destinationCoordinateY: destinationTarget.y,
-            particleCount: 50,
-            emitterLifeSpan: configuredDurationMs,
-            spellColorHex: configuredColorHex,
-            spellSize: configuredSize,
-          }));
-        }
-      }
+      newEmitters.push({
+        emitterIdentifier: `${activeSpellIdentifier}-${casterOrigin.targetIdentifier}-${Date.now()}`,
+        shapePrimitive: spellDefinition.shapePrimitive,
+        animationBehavior: spellDefinition.animationBehavior,
+        originCoordinateX: casterOrigin.x,
+        originCoordinateY: casterOrigin.y,
+        particleCount: spellDefinition.particleCount || 50,
+        emitterLifeSpan: configuredDurationMs,
+        spellColorHex: configuredColorHex,
+        spellSize: configuredSize,
+      });
 
       addParticleEmitters(newEmitters);
+
+      // DIAGNOSTIC ALERT 2: Proves the data was sent to the particle engine successfully
+      window.alert("SpellForge Debug: Data sent to Particle Engine!");
 
       if (!keepTargetsAfterCast) {
         const reticleIdentifiers = targetPositions.map((t) => t.targetIdentifier);
@@ -152,7 +110,7 @@ export function SpellPanel() {
         clearTargetPositions();
       }
     } catch (error) {
-      console.error("Error casting spell:", error);
+      window.alert(`SpellForge Debug Error: ${error}`);
     }
   };
 
@@ -190,7 +148,6 @@ export function SpellPanel() {
               <div
                 className="spell-card__color-indicator"
                 style={{ backgroundColor: spell.spellColorHex }}
-                title={`Color: ${spell.spellColorHex}`}
               />
             </div>
           );
