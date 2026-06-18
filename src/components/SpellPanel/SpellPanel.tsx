@@ -43,7 +43,8 @@ export function SpellPanel() {
       if (spellDefinition.targetLogic === "CASTER_ONLY") {
         newEmitters.push({
           emitterIdentifier: `${activeSpellIdentifier}-${casterOrigin.targetIdentifier}-${Date.now()}`,
-          behaviorType: spellDefinition.behaviorType,
+          shapePrimitive: spellDefinition.shapePrimitive,
+          animationBehavior: spellDefinition.animationBehavior,
           originCoordinateX: casterOrigin.x,
           originCoordinateY: casterOrigin.y,
           particleCount: 50,
@@ -51,10 +52,11 @@ export function SpellPanel() {
           spellColorHex: configuredColorHex,
           spellSize: configuredSize,
         });
-      } else if (spellDefinition.targetLogic === "ALL_TARGETS") {
+      } else if (spellDefinition.targetLogic === "ALL_SIMULTANEOUS") {
         newEmitters = targetPositions.map((target) => ({
           emitterIdentifier: `${activeSpellIdentifier}-${target.targetIdentifier}-${Date.now()}`,
-          behaviorType: spellDefinition.behaviorType,
+          shapePrimitive: spellDefinition.shapePrimitive,
+          animationBehavior: spellDefinition.animationBehavior,
           originCoordinateX: target.x,
           originCoordinateY: target.y,
           particleCount: 50,
@@ -62,13 +64,14 @@ export function SpellPanel() {
           spellColorHex: configuredColorHex,
           spellSize: configuredSize,
         }));
-      } else if (spellDefinition.targetLogic === "CASTER_TO_TARGETS") {
+      } else if (spellDefinition.targetLogic === "CASTER_TO_TARGETS_SIMULTANEOUS") {
         const destinations = targetPositions.slice(1);
         
         if (destinations.length === 0) {
           newEmitters.push({
             emitterIdentifier: `${activeSpellIdentifier}-${casterOrigin.targetIdentifier}-${Date.now()}`,
-            behaviorType: spellDefinition.behaviorType,
+            shapePrimitive: spellDefinition.shapePrimitive,
+            animationBehavior: spellDefinition.animationBehavior,
             originCoordinateX: casterOrigin.x,
             originCoordinateY: casterOrigin.y,
             particleCount: 50,
@@ -79,7 +82,8 @@ export function SpellPanel() {
         } else {
           newEmitters = destinations.map((destinationTarget) => ({
             emitterIdentifier: `${activeSpellIdentifier}-${destinationTarget.targetIdentifier}-${Date.now()}`,
-            behaviorType: spellDefinition.behaviorType,
+            shapePrimitive: spellDefinition.shapePrimitive,
+            animationBehavior: spellDefinition.animationBehavior,
             originCoordinateX: casterOrigin.x,
             originCoordinateY: casterOrigin.y,
             destinationCoordinateX: destinationTarget.x,
@@ -107,7 +111,7 @@ export function SpellPanel() {
 
   return (
     <div className="spell-panel">
-      <h2 className="spell-panel__header">Available Primitives</h2>
+      <h2 className="spell-panel__header">Available Forms</h2>
 
       <div className="spell-panel__list">
         {availableSpells.map((spell) => {

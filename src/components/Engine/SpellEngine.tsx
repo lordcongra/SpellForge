@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import OBR, { buildShape } from "@owlbear-rodeo/sdk";
+import OBR, { buildShape, buildPath } from "@owlbear-rodeo/sdk";
 import { useStore } from "../../store/useStore";
 
 export function SpellEngine() {
@@ -14,64 +14,60 @@ export function SpellEngine() {
 
       processedEmitters.current.add(emitter.emitterIdentifier);
 
-      let spellShapeBuilder = buildShape()
-        .fillColor(emitter.spellColorHex)
-        .fillOpacity(0.5)
-        .strokeColor(emitter.spellColorHex)
-        .strokeOpacity(0.8)
-        .layer("ATTACHMENT");
-
+      let spellItem;
       const pixelSize = emitter.spellSize * 150;
 
-      // The engine now checks the behavioral blueprint!
-      if (emitter.behaviorType === "PROJECTILE") {
+      if (emitter.shapePrimitive === "RECTANGLE" || emitter.shapePrimitive === "LINE") {
         
-        if (emitter.destinationCoordinateX !== undefined && emitter.destinationCoordinateY !== undefined) {
-          const startX = emitter.originCoordinateX;
-          const startY = emitter.originCoordinateY;
-          const endX = emitter.destinationCoordinateX;
-          const endY = emitter.destinationCoordinateY;
+        const startX = emitter.originCoordinateX;
+        const startY = emitter.originCoordinateY;
+        let endX = emitter.destinationCoordinateX;
+        let endY = emitter.destinationCoordinateY;
 
-          const distance = Math.hypot(endX - startX, endY - startY);
-          const midX = (startX + endX) / 2;
-          const midY = (startY + endY) / 2;
-
-          const angleInRadians = Math.atan2(endY - startY, endX - startX);
-          const angleInDegrees = angleInRadians * (180 / Math.PI);
-
-          spellShapeBuilder = spellShapeBuilder
-            .shapeType("RECTANGLE")
-            .position({ x: midX, y: midY })
-            .width(distance) 
-            .height(40) 
-            .rotation(angleInDegrees);
-
-        } else {
-          spellShapeBuilder = spellShapeBuilder
-            .shapeType("RECTANGLE")
-            .position({ x: emitter.originCoordinateX, y: emitter.originCoordinateY })
-            .width(pixelSize)
-            .height(40);
+        // Fallback if they only clicked once (Just shoots to the right)
+        if (endX === undefined || endY === undefined) {
+          endX = startX + pixelSize;
+          endY = startY;
         }
 
+        // OBR Paths use relative commands. 
+        // 0 = MOVE (Start Point), 1 = LINE (Draw to X/Y relative to the start point)
+        spellItem = buildPath()
+          .commands([
+            [0, 0, 0], 
+            [1, endX - startX, endY - startY]
+          ])
+          .position({ x: startX, y: startY })
+          .strokeColor(emitter.spellColorHex)
+          .strokeOpacity(0.8)
+          .strokeWidth(40) // Beam thickness
+          .fillOpacity(0)
+          .layer("ATTACHMENT")
+          .build();
+
       } else {
+        // Token Burst logic remains the same
         const burstX = emitter.destinationCoordinateX ?? emitter.originCoordinateX;
         const burstY = emitter.destinationCoordinateY ?? emitter.originCoordinateY;
 
-        spellShapeBuilder = spellShapeBuilder
+        spellItem = buildShape()
           .shapeType("CIRCLE")
           .position({ x: burstX, y: burstY })
           .width(pixelSize)
-          .height(pixelSize);
+          .height(pixelSize)
+          .fillColor(emitter.spellColorHex)
+          .fillOpacity(0.5)
+          .strokeColor(emitter.spellColorHex)
+          .strokeOpacity(0.8)
+          .layer("ATTACHMENT")
+          .build();
       }
 
-      const spellShape = spellShapeBuilder.build();
-
       try {
-        OBR.scene.items.addItems([spellShape]).then(() => {
+        OBR.scene.items.addItems([spellItem]).then(() => {
           setTimeout(() => {
             try {
-              OBR.scene.items.deleteItems([spellShape.id]);
+              OBR.scene.items.deleteItems([spellItem.id]);
             } catch (cleanupError) {
               console.error("Failed to clean up spell shape:", cleanupError);
             }
