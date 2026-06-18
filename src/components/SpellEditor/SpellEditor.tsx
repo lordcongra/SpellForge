@@ -22,6 +22,7 @@ export function SpellEditor({ editSpellId }: SpellEditorProps) {
     spellIdentifier: `spell-${Date.now()}`,
     spellName: "New Spell",
     spellColorHex: "#ffffff",
+    secondaryColorHex: "",
     durationInMs: 2000,
     shapePrimitive: "CIRCLE",
     animationBehavior: "INSTANT",
@@ -60,23 +61,52 @@ export function SpellEditor({ editSpellId }: SpellEditorProps) {
           />
         </label>
 
+        <label>
+          Identifier (Unique ID)
+          <input
+            type="text"
+            value={formData.spellIdentifier}
+            onChange={(e) => setFormData({ ...formData, spellIdentifier: e.target.value })}
+            disabled={!!editSpellId} // Cannot change ID once created
+          />
+        </label>
+
         <div className="spell-editor__row">
           <label>
-            Identifier (Unique ID)
-            <input
-              type="text"
-              value={formData.spellIdentifier}
-              onChange={(e) => setFormData({ ...formData, spellIdentifier: e.target.value })}
-              disabled={!!editSpellId} // Cannot change ID once created
-            />
+            Primary Color
+            <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+              <input
+                type="color"
+                value={formData.spellColorHex}
+                onChange={(e) => setFormData({ ...formData, spellColorHex: e.target.value })}
+                style={{ cursor: "pointer", height: "34px", width: "40px", padding: "0", border: "none", background: "none" }}
+              />
+              <input
+                type="text"
+                value={formData.spellColorHex}
+                onChange={(e) => setFormData({ ...formData, spellColorHex: e.target.value })}
+                placeholder="#ffffff"
+                style={{ flex: 1 }}
+              />
+            </div>
           </label>
           <label>
-            Color
-            <input
-              type="color"
-              value={formData.spellColorHex}
-              onChange={(e) => setFormData({ ...formData, spellColorHex: e.target.value })}
-            />
+            Secondary Color (Optional)
+            <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+              <input
+                type="color"
+                value={formData.secondaryColorHex || "#000000"}
+                onChange={(e) => setFormData({ ...formData, secondaryColorHex: e.target.value })}
+                style={{ cursor: "pointer", height: "34px", width: "40px", padding: "0", border: "none", background: "none" }}
+              />
+              <input
+                type="text"
+                value={formData.secondaryColorHex || ""}
+                onChange={(e) => setFormData({ ...formData, secondaryColorHex: e.target.value })}
+                placeholder="None"
+                style={{ flex: 1 }}
+              />
+            </div>
           </label>
         </div>
 
