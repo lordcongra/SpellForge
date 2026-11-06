@@ -8,7 +8,7 @@
     "title": "SpellForge",
     "icon": "/icon.svg",
     "popover": "http://localhost:5173/SpellForge/",
-    "width": 400,
-    "height": 600
+    "width": 720,
+    "height": 720
   }
 }

@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Project Agent & Legacy Guidelines (Local)
+AGENTS.md
+legacy_reference/
+

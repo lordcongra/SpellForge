@@ -1,0 +1,1237 @@
+/* ==========================================================================
+   SpellForge Editor Layout & Companion Stylesheet
+   ========================================================================== */
+
+.sf-editor-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  gap: 12px;
+}
+
+.sf-editor--crosshair {
+  cursor: crosshair;
+}
+
+.sf-editor-workspace {
+  display: flex;
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  z-index: 10;
+}
+
+/* ==========================================================================
+   1. Spell Library Sidebar (SpellList)
+   ========================================================================== */
+
+.sf-spell-list {
+  width: 320px;
+  min-width: 280px;
+  background-color: var(--panel-bg);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  padding: 14px;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.sf-spell-list__header {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sf-spell-list__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sf-spell-list__title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.sf-spell-list__badge {
+  font-size: 0.75rem;
+  background-color: rgba(255, 255, 255, 0.08);
+  color: var(--text-muted);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.sf-spell-list__search-bar {
+  display: flex;
+  align-items: center;
+  background-color: var(--row-even);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 6px 10px;
+  gap: 8px;
+}
+
+.sf-spell-list__search-icon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.sf-spell-list__search-input {
+  background: transparent;
+  border: none;
+  color: var(--text-main);
+  font-size: 0.825rem;
+  width: 100%;
+  outline: none;
+}
+
+.sf-spell-list__search-clear {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
+
+.sf-spell-list__search-clear:hover {
+  color: var(--text-main);
+}
+
+.sf-spell-list__filter-chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.sf-chip {
+  background-color: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  padding: 3px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.sf-chip:hover {
+  border-color: var(--primary);
+  color: var(--text-main);
+}
+
+.sf-chip--active {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: #ffffff;
+}
+
+.sf-chip--sm {
+  font-size: 0.7rem;
+  padding: 2px 6px;
+}
+
+.sf-spell-list__items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  flex: 1;
+  padding-right: 2px;
+}
+
+.sf-spell-list__empty {
+  padding: 30px 10px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.sf-spell-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background-color: var(--row-odd);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.sf-spell-item:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  background-color: var(--row-even);
+}
+
+.sf-spell-item--active {
+  border-color: var(--primary);
+  background-color: rgba(99, 102, 241, 0.12);
+}
+
+.sf-spell-item__icon-wrapper {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background-color: rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--secondary);
+  flex-shrink: 0;
+}
+
+.sf-spell-item__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.sf-spell-item__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.sf-spell-item__name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-main);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sf-spell-item__meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.725rem;
+  color: var(--text-muted);
+}
+
+.sf-spell-item__delete-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.4;
+  transition: all 0.15s ease;
+}
+
+.sf-spell-item:hover .sf-spell-item__delete-btn {
+  opacity: 1;
+}
+
+.sf-spell-item__delete-btn:hover {
+  color: var(--semantic-danger);
+  background-color: rgba(239, 68, 68, 0.12);
+}
+
+/* Category Tags */
+.sf-tag {
+  font-size: 0.675rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+}
+
+.sf-tag--arcane {
+  background-color: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.sf-tag--elemental {
+  background-color: rgba(249, 115, 22, 0.15);
+  color: #fdba74;
+  border-color: rgba(249, 115, 22, 0.3);
+}
+
+.sf-tag--divine {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #6ee7b7;
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.sf-tag--combat {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+/* ==========================================================================
+   2. Main Center Area & Inspector (SpellInspector)
+   ========================================================================== */
+
+.sf-editor-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sf-inspector {
+  background-color: var(--panel-bg);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+}
+
+.sf-inspector--empty {
+  align-items: center;
+  justify-content: center;
+}
+
+.sf-inspector__empty-state {
+  text-align: center;
+  max-width: 320px;
+  color: var(--text-muted);
+}
+
+.sf-inspector__empty-icon {
+  color: var(--primary);
+  margin-bottom: 12px;
+}
+
+.sf-inspector__empty-state h3 {
+  margin: 0 0 6px 0;
+  color: var(--text-main);
+  font-size: 1.1rem;
+}
+
+.sf-inspector__empty-state p {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.sf-inspector__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.sf-inspector__title-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sf-inspector__icon-preview {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background-color: rgba(99, 102, 241, 0.15);
+  color: var(--secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.sf-inspector__title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.sf-inspector__subtitle {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.sf-inspector__subtitle code {
+  color: var(--secondary);
+}
+
+.sf-inspector__content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sf-inspector__section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sf-inspector__section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.sf-section-title {
+  margin: 0 0 4px 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.sf-section-desc {
+  margin: 0;
+  font-size: 0.775rem;
+  color: var(--text-muted);
+}
+
+/* Form Controls */
+.sf-form-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.sf-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+  min-width: 140px;
+}
+
+.sf-label-text {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.sf-input,
+.sf-select,
+.sf-textarea {
+  background-color: var(--row-even);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  color: var(--text-main);
+  padding: 7px 10px;
+  font-size: 0.85rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.sf-input:focus,
+.sf-select:focus,
+.sf-textarea:focus {
+  border-color: var(--primary);
+}
+
+.sf-select {
+  cursor: pointer;
+}
+
+.sf-select--inline {
+  padding: 4px 8px;
+  font-size: 0.8rem;
+}
+
+.sf-textarea {
+  resize: vertical;
+}
+
+.sf-color-input-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sf-color-picker {
+  -webkit-appearance: none;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  background: transparent;
+  padding: 0;
+}
+
+.sf-color-picker::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.sf-color-picker::-webkit-color-swatch {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+}
+
+.sf-input--color-text {
+  width: 90px;
+  font-family: monospace;
+}
+
+/* ==========================================================================
+   3. Mechanic Cards
+   ========================================================================== */
+
+.sf-mechanic-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sf-mech-card {
+  background-color: var(--row-odd);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sf-mech-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sf-mech-card__header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sf-mech-card__step-num {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--secondary);
+}
+
+.sf-mech-card__remove-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.sf-mech-card__remove-btn:hover {
+  color: var(--semantic-danger);
+  background-color: rgba(239, 68, 68, 0.12);
+}
+
+.sf-mech-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ==========================================================================
+   4. Cast Controls Toolbar (CastControls)
+   ========================================================================== */
+
+.sf-cast-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background-color: var(--panel-bg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 10px 16px;
+  z-index: 20;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  flex-wrap: wrap;
+}
+
+.sf-cast-controls__left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.sf-cast-controls__spell-tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: rgba(255, 255, 255, 0.06);
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sf-cast-controls__spell-icon {
+  color: var(--secondary);
+}
+
+.sf-cast-controls__spell-name {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--text-main);
+}
+
+.sf-cast-coords {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sf-coord-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sf-coord-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.sf-checkbox-wrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.sf-coord-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  background-color: var(--row-even);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 0.725rem;
+  color: var(--text-muted);
+}
+
+.sf-coord-input {
+  background: transparent;
+  border: none;
+  color: var(--text-main);
+  width: 44px;
+  font-size: 0.75rem;
+  font-family: monospace;
+  outline: none;
+}
+
+.sf-preset-pills {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sf-cast-controls__right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sf-cast-stats {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sf-stat-badge {
+  font-size: 0.725rem;
+  color: var(--text-muted);
+  background-color: rgba(255, 255, 255, 0.05);
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+@media (max-width: 900px) {
+  .sf-editor-workspace {
+    flex-direction: column;
+  }
+  .sf-spell-list {
+    width: 100%;
+    max-height: 250px;
+  }
+}
+
+/* ==========================================================================
+   Segmented View Tabs & Popover Layout (400x600 Support)
+   ========================================================================== */
+
+.sf-editor-tabs {
+  display: flex;
+  align-items: center;
+  background-color: var(--row-even);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 4px;
+  flex-shrink: 0;
+  z-index: 20;
+}
+
+.sf-tab-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 7px 10px;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  white-space: nowrap;
+}
+
+.sf-tab-btn:hover {
+  color: var(--text-main);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.sf-tab-btn--active {
+  background-color: var(--primary);
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.sf-editor-tab-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.sf-tab-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.sf-tab-panel--library .sf-spell-list {
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  flex: 1;
+}
+
+.sf-tab-panel--editor .sf-editor-main {
+  width: 100%;
+  height: 100%;
+  flex: 1;
+}
+
+/* ==========================================================================
+   Cast & Targets View
+   ========================================================================== */
+
+.sf-tab-panel--cast {
+  overflow-y: auto;
+}
+
+.sf-cast-view {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+}
+
+.sf-cast-view__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.sf-cast-view__controls {
+  flex-shrink: 0;
+  margin-top: auto;
+}
+
+.sf-cast-view__controls .sf-cast-controls {
+  position: static;
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+/* ==========================================================================
+   Targeting Pad & OBR Token Integration
+   ========================================================================== */
+
+.sf-obr-target-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  background-color: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+
+.sf-obr-bar-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 180px;
+}
+
+.sf-obr-col-title {
+  font-size: 0.725rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.sf-btn-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.sf-targets-summary {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.sf-summary-card {
+  flex: 1;
+  background-color: var(--row-even);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.sf-summary-card--origin {
+  border-left: 3px solid var(--primary);
+}
+
+.sf-summary-card--target {
+  border-left: 3px solid #06b6d4;
+}
+
+.sf-summary-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sf-icon-origin {
+  color: var(--primary);
+}
+
+.sf-icon-target {
+  color: #06b6d4;
+}
+
+.sf-summary-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.sf-summary-val {
+  font-size: 0.8rem;
+  color: var(--text-main);
+  font-weight: 500;
+}
+
+.sf-token-badge {
+  background-color: rgba(99, 102, 241, 0.2);
+  color: var(--secondary);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.sf-dim {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.sf-clear-btn {
+  background: transparent;
+  border: none;
+  color: var(--semantic-danger);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+  transition: opacity 0.15s ease;
+}
+
+.sf-clear-btn:hover {
+  opacity: 0.8;
+}
+
+.sf-preset-pills {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.sf-pill-btn {
+  background-color: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-muted);
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 0.725rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.sf-pill-btn:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+  color: var(--text-main);
+}
+
+.sf-targeting-pad-container {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--panel-bg);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 10px;
+  gap: 8px;
+}
+
+.sf-pad-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.sf-pad-mode-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sf-pad-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sf-targeting-pad {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  background-color: var(--row-even);
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  cursor: crosshair;
+  overflow: hidden;
+  user-select: none;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.sf-pad-svg-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.sf-pad-ray {
+  stroke: var(--primary);
+  stroke-width: 2;
+  stroke-dasharray: 4 4;
+  opacity: 0.8;
+}
+
+.sf-pad-marker {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: auto;
+  cursor: pointer;
+  z-index: 5;
+  transition: transform 0.1s ease;
+}
+
+.sf-pad-marker:hover {
+  transform: translate(-50%, -50%) scale(1.15);
+}
+
+.sf-pad-marker__dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  box-shadow: 0 0 8px currentColor;
+}
+
+.sf-pad-marker--origin .sf-pad-marker__dot {
+  background-color: var(--primary);
+  color: var(--secondary);
+  border: 2px solid #ffffff;
+}
+
+.sf-pad-marker--target .sf-pad-marker__dot {
+  background-color: var(--semantic-danger);
+  color: #f87171;
+  border: 2px solid #ffffff;
+}
+
+.sf-pad-marker__label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-main);
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 1px 4px;
+  border-radius: 3px;
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
+.sf-pad-empty-hint {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  pointer-events: none;
+}
+
+.sf-pad-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 2px;
+}
+
+.sf-pad-info-text {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-family: monospace;
+}
+
+/* ==========================================================================
+   Visual Icon Pickers
+   ========================================================================== */
+
+/* ShapePicker */
+.sf-shape-picker {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.sf-shape-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 6px 4px;
+  background-color: var(--row-even);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 5px;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  white-space: nowrap;
+}
+
+.sf-shape-btn:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: var(--text-main);
+}
+
+.sf-shape-btn--active {
+  background-color: rgba(99, 102, 241, 0.2);
+  border-color: var(--primary);
+  color: var(--secondary);
+  font-weight: 600;
+}
+
+.sf-shape-btn__icon {
+  flex-shrink: 0;
+}
+
+.sf-shape-btn__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* MechanicTypePicker */
+.sf-mechanic-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.sf-mechanic-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background-color: var(--row-even);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  white-space: nowrap;
+}
+
+.sf-mechanic-pill:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: var(--text-main);
+}
+
+.sf-mechanic-pill--active {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.sf-mechanic-pill__icon {
+  flex-shrink: 0;
+}
+
+/* SpellIconPicker */
+.sf-spell-icon-picker {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.sf-spell-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  background-color: var(--row-even);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
+.sf-spell-icon-btn:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: var(--text-main);
+}
+
+.sf-spell-icon-btn--active {
+  background-color: rgba(99, 102, 241, 0.2);
+  border-color: var(--primary);
+  color: var(--secondary);
+}
+
+/* Compact Mode (<= 600px width - e.g. 400x600 Owlbear Popover) */
+@media (max-width: 600px) {
+  .sf-editor-container {
+    gap: 8px;
+    height: 100%;
+  }
+
+  .sf-editor-tabs {
+    padding: 2px;
+  }
+
+  .sf-tab-btn {
+    padding: 6px 8px;
+    font-size: 0.75rem;
+  }
+
+  .sf-shape-picker {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .sf-targeting-pad {
+    height: 170px;
+  }
+
+  .sf-cast-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 8px 10px;
+  }
+
+  .sf-cast-controls__left {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    width: 100%;
+  }
+
+  .sf-cast-coords {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .sf-cast-controls__right {
+    justify-content: space-between;
+    width: 100%;
+  }
+}
+
+
