@@ -110,37 +110,99 @@ export function simulateBeam(context: MechanicSimulationContext): void {
     }
   }
 
-  // Generate dense beam stream along the line
-  const particleSpacing = 16;
-  const beamCount = Math.max(12, Math.floor(distance / particleSpacing));
+  // Generate dense luminous beam with superheated central core and orbiting plasma filaments
+  const particleSpacing = 14;
+  const beamCount = Math.max(14, Math.floor(distance / particleSpacing));
   const beamParticles: Particle[] = [];
+  const perpAngle = angle + Math.PI / 2;
+  const amplitude = Math.max(14, beamVfx.size * 1.1);
+  const omega = 4 * Math.PI; // 2 complete wave cycles along the beam axis
 
   for (let i = 0; i <= beamCount; i++) {
     const t = i / beamCount;
     const bx = origin.x + dx * t;
     const by = origin.y + dy * t;
-    const jitter = (Math.random() - 0.5) * 8;
-    const perpAngle = angle + Math.PI / 2;
+    const coreJitter = (Math.random() - 0.5) * 3;
 
+    // 1. Superheated central ray core (white-hot)
     beamParticles.push(
       createParticle({
         shapeId: beamVfx.shapeId,
-        x: bx + Math.cos(perpAngle) * jitter,
-        y: by + Math.sin(perpAngle) * jitter,
-        vx: Math.cos(angle) * (Math.random() * 20),
-        vy: Math.sin(angle) * (Math.random() * 20),
-        size: beamVfx.size * (0.8 + Math.random() * 0.4),
-        color: beamVfx.color,
-        alpha: 0.95,
+        x: bx + Math.cos(perpAngle) * coreJitter,
+        y: by + Math.sin(perpAngle) * coreJitter,
+        vx: Math.cos(angle) * (Math.random() * 15),
+        vy: Math.sin(angle) * (Math.random() * 15),
+        size: Math.max(4, beamVfx.size * 0.55),
+        color: '#ffffff',
+        alpha: 1.0,
         glow: true,
-        glowBlur: 14,
-        lifetimeMs: durationMs * (0.8 + Math.random() * 0.4),
+        glowBlur: 16,
+        lifetimeMs: durationMs * (0.8 + Math.random() * 0.3),
+      })
+    );
+
+    // 2. Surging plasma filament 1 (+ A * sin(omega * t))
+    const filamentOffset1 = amplitude * Math.sin(omega * t);
+    beamParticles.push(
+      createParticle({
+        shapeId: 'sparkle',
+        x: bx + Math.cos(perpAngle) * filamentOffset1,
+        y: by + Math.sin(perpAngle) * filamentOffset1,
+        vx: Math.cos(angle) * (15 + Math.random() * 20),
+        vy: Math.sin(angle) * (15 + Math.random() * 20),
+        size: beamVfx.size * 0.8,
+        color: beamVfx.color,
+        alpha: 0.9,
+        glow: true,
+        glowBlur: 12,
+        lifetimeMs: durationMs * (0.7 + Math.random() * 0.4),
+      })
+    );
+
+    // 3. Surging plasma filament 2 (out-of-phase: - A * sin(omega * t))
+    const filamentOffset2 = -amplitude * Math.sin(omega * t);
+    beamParticles.push(
+      createParticle({
+        shapeId: 'sparkle',
+        x: bx + Math.cos(perpAngle) * filamentOffset2,
+        y: by + Math.sin(perpAngle) * filamentOffset2,
+        vx: Math.cos(angle) * (15 + Math.random() * 20),
+        vy: Math.sin(angle) * (15 + Math.random() * 20),
+        size: beamVfx.size * 0.8,
+        color: beamVfx.color,
+        alpha: 0.9,
+        glow: true,
+        glowBlur: 12,
+        lifetimeMs: durationMs * (0.7 + Math.random() * 0.4),
       })
     );
   }
+
+  // 4. High-intensity impact flash at destination
+  const impactFlashCount = 10;
+  for (let k = 0; k < impactFlashCount; k++) {
+    const flashAngle = (k / impactFlashCount) * 2 * Math.PI + Math.random() * 0.2;
+    const flashSpeed = 40 + Math.random() * 60;
+    beamParticles.push(
+      createParticle({
+        shapeId: k % 2 === 0 ? 'star' : 'sparkle',
+        x: target.x,
+        y: target.y,
+        vx: Math.cos(flashAngle) * flashSpeed,
+        vy: Math.sin(flashAngle) * flashSpeed,
+        size: beamVfx.size * (0.8 + Math.random() * 0.8),
+        color: k % 3 === 0 ? '#ffffff' : beamVfx.color,
+        alpha: 1.0,
+        glow: true,
+        glowBlur: 18,
+        lifetimeMs: Math.min(350, durationMs * 0.8),
+      })
+    );
+  }
+
   emit(beamParticles);
 
-  // OnImpact at beam arrival
+  // Additional trigger-defined OnImpact at beam arrival
   if (mechanic.triggers?.onImpact?.vfx) {
     for (const vfx of mechanic.triggers.onImpact.vfx) {
       emit(createParticlesFromVfx({ vfx, origin: target }));

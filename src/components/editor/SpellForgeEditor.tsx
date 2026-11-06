@@ -4,7 +4,7 @@ import { useSpellStore } from '@/store/useSpellStore';
 import { SpellList } from './SpellList';
 import { SpellInspector } from './SpellInspector';
 import { CastControls } from './CastControls';
-import { TargetingPad } from './TargetingPad';
+import { TargetRoster } from './TargetRoster';
 import { useObrTargeting } from '@/hooks/useObrTargeting';
 import { Button } from '@/components/ui/Button';
 import './SpellForgeEditor.css';
@@ -43,7 +43,7 @@ export const SpellForgeEditor: React.FC = () => {
       target.closest('.sf-spell-list') ||
       target.closest('.sf-inspector') ||
       target.closest('.sf-cast-controls') ||
-      target.closest('.sf-targeting-pad') ||
+      target.closest('.sf-target-roster') ||
       target.closest('.sf-editor-tabs')
     ) {
       return;
@@ -112,9 +112,9 @@ export const SpellForgeEditor: React.FC = () => {
             <div className="sf-cast-view">
               <div className="sf-cast-view__header">
                 <div>
-                  <h3 className="sf-section-title">Target Selection & Preview</h3>
+                  <h3 className="sf-section-title">Tactical Target Deck & Cast</h3>
                   <p className="sf-section-desc">
-                    Click pad to place Origin or Destination targets.
+                    1-click token center targeting and dynamic tactical deck.
                   </p>
                 </div>
                 {isObrAvailable && (
@@ -131,7 +131,7 @@ export const SpellForgeEditor: React.FC = () => {
                 )}
               </div>
 
-              <TargetingPad />
+              <TargetRoster />
 
               <div className="sf-cast-view__controls">
                 <CastControls

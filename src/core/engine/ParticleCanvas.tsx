@@ -78,7 +78,10 @@ export const ParticleCanvas: React.FC<ParticleCanvasProps> = ({
             if (onTick) {
               onTick(deltaMs);
             }
+            const prevGco = ctx.globalCompositeOperation;
+            ctx.globalCompositeOperation = 'lighter';
             renderParticles(ctx, externalParticles);
+            ctx.globalCompositeOperation = prevGco;
           } else {
             const store = useSpellStore.getState();
             if (store.activeParticles.length > 0 || store.activeTimelines.length > 0) {
@@ -86,7 +89,10 @@ export const ParticleCanvas: React.FC<ParticleCanvasProps> = ({
             }
             const active = useSpellStore.getState().activeParticles;
             if (active.length > 0) {
+              const prevGco = ctx.globalCompositeOperation;
+              ctx.globalCompositeOperation = 'lighter';
               renderParticles(ctx, active);
+              ctx.globalCompositeOperation = prevGco;
             }
           }
         }

@@ -34,21 +34,63 @@ export async function renderObrSceneCast(payload: CastPayload): Promise<void> {
       const endX = target.x;
       const endY = target.y;
 
-      const beamLine = buildPath()
-        .commands([
-          [0, 0, 0],
-          [1, endX - startX, endY - startY],
-        ])
-        .position({ x: startX, y: startY })
-        .strokeColor(color)
-        .strokeOpacity(0.85)
-        .strokeWidth(mainMechanic.type === 'beam' ? 20 : 12)
-        .fillOpacity(0)
-        .layer('ATTACHMENT')
-        .metadata({ [TEMPORARY_ITEM_KEY]: true })
-        .build();
+      const pathCommands: [number, number, number][] = [
+        [0, 0, 0],
+        [1, endX - startX, endY - startY],
+      ];
 
-      itemsToAdd.push(beamLine);
+      if (mainMechanic.type === 'beam') {
+        // Multi-layered luminous energy beam
+        // Layer 1: Wide outer glow path
+        const outerGlow = buildPath()
+          .commands(pathCommands)
+          .position({ x: startX, y: startY })
+          .strokeColor(color)
+          .strokeOpacity(0.3)
+          .strokeWidth(40)
+          .fillOpacity(0)
+          .layer('ATTACHMENT')
+          .metadata({ [TEMPORARY_ITEM_KEY]: true })
+          .build();
+
+        // Layer 2: Main energy body
+        const energyBody = buildPath()
+          .commands(pathCommands)
+          .position({ x: startX, y: startY })
+          .strokeColor(color)
+          .strokeOpacity(0.8)
+          .strokeWidth(16)
+          .fillOpacity(0)
+          .layer('ATTACHMENT')
+          .metadata({ [TEMPORARY_ITEM_KEY]: true })
+          .build();
+
+        // Layer 3: Superheated central core
+        const centralCore = buildPath()
+          .commands(pathCommands)
+          .position({ x: startX, y: startY })
+          .strokeColor('#ffffff')
+          .strokeOpacity(1.0)
+          .strokeWidth(4)
+          .fillOpacity(0)
+          .layer('ATTACHMENT')
+          .metadata({ [TEMPORARY_ITEM_KEY]: true })
+          .build();
+
+        itemsToAdd.push(outerGlow, energyBody, centralCore);
+      } else {
+        const projLine = buildPath()
+          .commands(pathCommands)
+          .position({ x: startX, y: startY })
+          .strokeColor(color)
+          .strokeOpacity(0.85)
+          .strokeWidth(12)
+          .fillOpacity(0)
+          .layer('ATTACHMENT')
+          .metadata({ [TEMPORARY_ITEM_KEY]: true })
+          .build();
+        itemsToAdd.push(projLine);
+      }
 
       // Impact burst at destination
       const impactShape = buildShape()

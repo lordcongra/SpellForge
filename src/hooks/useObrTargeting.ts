@@ -12,6 +12,37 @@ export interface TargetMetadata {
   tokenName?: string;
 }
 
+/**
+ * Calculates the center point of an Owlbear Rodeo item based on dimensions and scale.
+ * Defaults to 150px cell size if dimensions cannot be inferred.
+ */
+export function getTokenCenter(token: Item, defaultCellSize = 150): Point2D {
+  const rawWidth =
+    (token as { image?: { width?: number } }).image?.width ??
+    (token as { text?: { width?: number } }).text?.width ??
+    (token as { shape?: { width?: number } }).shape?.width ??
+    (token as { width?: number }).width ??
+    defaultCellSize;
+
+  const rawHeight =
+    (token as { image?: { height?: number } }).image?.height ??
+    (token as { text?: { height?: number } }).text?.height ??
+    (token as { shape?: { height?: number } }).shape?.height ??
+    (token as { height?: number }).height ??
+    defaultCellSize;
+
+  const scaleX = (token as { scale?: { x?: number } }).scale?.x ?? 1;
+  const scaleY = (token as { scale?: { y?: number } }).scale?.y ?? 1;
+
+  const w = rawWidth * Math.abs(scaleX);
+  const h = rawHeight * Math.abs(scaleY);
+
+  return {
+    x: Math.round(token.position.x + w / 2),
+    y: Math.round(token.position.y + h / 2),
+  };
+}
+
 export function useObrTargeting() {
   const [isObrAvailable, setIsObrAvailable] = useState<boolean>(
     () => typeof OBR !== 'undefined' && Boolean(OBR?.isAvailable)
@@ -24,11 +55,14 @@ export function useObrTargeting() {
   const setOriginSpot = useSpellStore((s) => s.setOriginSpot);
   const targetSpots = useSpellStore((s) => s.targetSpots);
   const addTargetSpot = useSpellStore((s) => s.addTargetSpot);
+  const removeTargetSpot = useSpellStore((s) => s.removeTargetSpot);
   const clearTargetSpots = useSpellStore((s) => s.clearTargetSpots);
 
   const targetingRoleRef = useRef(targetingRole);
   const originSpotRef = useRef(originSpot);
+  const targetSpotsRef = useRef(targetSpots);
   const originTokenRef = useRef(originTokenInfo);
+  const activeReticleIdsRef = useRef<string[]>([]);
 
   useEffect(() => {
     targetingRoleRef.current = targetingRole;
@@ -37,6 +71,10 @@ export function useObrTargeting() {
   useEffect(() => {
     originSpotRef.current = originSpot;
   }, [originSpot]);
+
+  useEffect(() => {
+    targetSpotsRef.current = targetSpots;
+  }, [targetSpots]);
 
   useEffect(() => {
     originTokenRef.current = originTokenInfo;
@@ -52,6 +90,7 @@ export function useObrTargeting() {
       if (items.length > 0) {
         await OBR.scene.local.deleteItems(items.map((i) => i.id));
       }
+      activeReticleIdsRef.current = [];
     } catch (e) {
       console.warn('[useObrTargeting] Failed to prune reticle items', e);
     }
@@ -64,18 +103,21 @@ export function useObrTargeting() {
       try {
         await cleanupReticles();
         const reticleItems: Item[] = [];
+        const reticleRadius = 40;
+        const reticleDiameter = reticleRadius * 2;
 
         if (origin) {
           const originBuilder = buildShape()
-            .width(80)
-            .height(80)
+            .id('spellforge-reticle-origin')
+            .width(reticleDiameter)
+            .height(reticleDiameter)
             .shapeType('CIRCLE')
-            .position({ x: origin.x - 40, y: origin.y - 40 })
-            .fillColor('#6366f1')
-            .fillOpacity(0.2)
-            .strokeColor('#818cf8')
-            .strokeWidth(4)
-            .strokeDash([16, 8])
+            .position({ x: origin.x - reticleRadius, y: origin.y - reticleRadius })
+            .fillColor('#9b59b6')
+            .fillOpacity(0)
+            .strokeColor('#9b59b6')
+            .strokeWidth(5)
+            .strokeDash([30, 15])
             .layer('ATTACHMENT')
             .locked(true)
             .disableHit(true)
@@ -89,15 +131,16 @@ export function useObrTargeting() {
 
         targets.forEach((tgt, index) => {
           const targetItem = buildShape()
-            .width(70)
-            .height(70)
+            .id(`spellforge-reticle-target-${index}`)
+            .width(reticleDiameter)
+            .height(reticleDiameter)
             .shapeType('CIRCLE')
-            .position({ x: tgt.x - 35, y: tgt.y - 35 })
-            .fillColor('#06b6d4')
-            .fillOpacity(0.2)
-            .strokeColor('#22d3ee')
-            .strokeWidth(3)
-            .strokeDash([14, 7])
+            .position({ x: tgt.x - reticleRadius, y: tgt.y - reticleRadius })
+            .fillColor('#00e5ff')
+            .fillOpacity(0)
+            .strokeColor('#00e5ff')
+            .strokeWidth(5)
+            .strokeDash([30, 15])
             .layer('ATTACHMENT')
             .locked(true)
             .disableHit(true)
@@ -107,7 +150,10 @@ export function useObrTargeting() {
         });
 
         if (reticleItems.length > 0) {
+          activeReticleIdsRef.current = reticleItems.map((i) => i.id);
           await OBR.scene.local.addItems(reticleItems);
+        } else {
+          activeReticleIdsRef.current = [];
         }
       } catch (e) {
         console.warn('[useObrTargeting] Failed to update scene reticles', e);
@@ -121,6 +167,30 @@ export function useObrTargeting() {
       syncSceneReticles(originSpot, targetSpots);
     }
   }, [originSpot, targetSpots, isObrAvailable, syncSceneReticles]);
+
+  // Animated spinning rotation loop: 40ms interval rotating active reticles
+  useEffect(() => {
+    if (!isObrAvailable) return;
+    const interval = setInterval(async () => {
+      const ids = activeReticleIdsRef.current;
+      if (!ids || ids.length === 0) return;
+      try {
+        if (OBR?.isAvailable) {
+          await OBR.scene.local.updateItems(ids, (items) => {
+            for (const item of items) {
+              item.rotation = ((item.rotation ?? 0) + 2) % 360;
+            }
+          });
+        }
+      } catch {
+        // Suppress benign update errors during scene switching
+      }
+    }, 40);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [isObrAvailable]);
 
   // Register OBR tool and listeners
   useEffect(() => {
@@ -156,26 +226,53 @@ export function useObrTargeting() {
           ],
           cursors: [{ cursor: 'crosshair' }],
           onToolClick: async (_context, event) => {
-            let clickPos: Point2D = {
-              x: Math.round(event.pointerPosition.x),
-              y: Math.round(event.pointerPosition.y),
-            };
+            let clickPos: Point2D;
             let attachedId: string | undefined = undefined;
             let tokenName: string | undefined = undefined;
 
             if (event.target) {
-              clickPos = {
-                x: Math.round(event.target.position.x),
-                y: Math.round(event.target.position.y),
-              };
+              clickPos = getTokenCenter(event.target);
               attachedId = event.target.id;
               tokenName = (event.target as { name?: string }).name || 'Token';
+            } else {
+              clickPos = {
+                x: Math.round(event.pointerPosition.x),
+                y: Math.round(event.pointerPosition.y),
+              };
             }
 
-            if (targetingRoleRef.current === 'origin' || !originSpotRef.current) {
+            const isNear = (p1: Point2D, p2: Point2D, thresh = 45) =>
+              Math.hypot(p1.x - p2.x, p1.y - p2.y) <= thresh;
+
+            const currentOrigin = originSpotRef.current;
+            const currentTargets = targetSpotsRef.current;
+
+            // Explicit origin role assignment
+            if (targetingRoleRef.current === 'origin') {
               setOriginSpot(clickPos);
               setOriginTokenInfo(attachedId ? { tokenId: attachedId, tokenName } : null);
               setTargetingRole('target');
+              return;
+            }
+
+            // Clicking existing origin removes it
+            if (currentOrigin && isNear(clickPos, currentOrigin)) {
+              setOriginSpot(null);
+              setOriginTokenInfo(null);
+              return;
+            }
+
+            // Clicking existing target removes it
+            const matchedTargetIndex = currentTargets.findIndex((tgt) => isNear(clickPos, tgt));
+            if (matchedTargetIndex !== -1) {
+              removeTargetSpot(matchedTargetIndex);
+              return;
+            }
+
+            // Sequential click flow: 1st click sets Origin, subsequent clicks add Targets
+            if (!currentOrigin) {
+              setOriginSpot(clickPos);
+              setOriginTokenInfo(attachedId ? { tokenId: attachedId, tokenName } : null);
             } else {
               addTargetSpot(clickPos);
             }
@@ -204,7 +301,7 @@ export function useObrTargeting() {
         cleanupReticles().catch(() => {});
       }
     };
-  }, [setOriginSpot, addTargetSpot, cleanupReticles]);
+  }, [setOriginSpot, addTargetSpot, removeTargetSpot, cleanupReticles]);
 
   const activateObrTool = useCallback(async (role: 'origin' | 'target' = 'target') => {
     setTargetingRole(role);
@@ -229,10 +326,7 @@ export function useObrTargeting() {
       const items = await OBR.scene.items.getItems(selection);
       const token = items[0];
       if (token) {
-        const pos = {
-          x: Math.round(token.position.x),
-          y: Math.round(token.position.y),
-        };
+        const pos = getTokenCenter(token);
         setOriginSpot(pos);
         setOriginTokenInfo({
           tokenId: token.id,
@@ -259,10 +353,7 @@ export function useObrTargeting() {
       const items = await OBR.scene.items.getItems(selection);
       let added = 0;
       for (const token of items) {
-        const pos = {
-          x: Math.round(token.position.x),
-          y: Math.round(token.position.y),
-        };
+        const pos = getTokenCenter(token);
         addTargetSpot(pos);
         added++;
       }
@@ -277,10 +368,11 @@ export function useObrTargeting() {
   }, [addTargetSpot]);
 
   const clearAll = useCallback(async () => {
+    setOriginSpot(null);
     clearTargetSpots();
     setOriginTokenInfo(null);
     await cleanupReticles();
-  }, [clearTargetSpots, cleanupReticles]);
+  }, [setOriginSpot, clearTargetSpots, cleanupReticles]);
 
   return {
     isObrAvailable,
